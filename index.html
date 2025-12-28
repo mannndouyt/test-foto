@@ -5,11 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>رفع الصور العامة - موقع تفاعلي للجميع</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- إضافة Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
+        /* نفس الأنماط السابقة... */
         * {
             margin: 0;
             padding: 0;
@@ -72,7 +69,7 @@
             position: absolute;
             left: 30px;
             top: 30px;
-            background: #2c3e50;
+            background: #27ae60;
             color: white;
             border-radius: 20px;
             padding: 8px 20px;
@@ -80,14 +77,6 @@
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-        
-        .firebase-status.connected {
-            background: #27ae60;
-        }
-        
-        .firebase-status.disconnected {
-            background: #e74c3c;
         }
         
         .admin-panel-btn {
@@ -367,7 +356,6 @@
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
         }
         
-        /* نافذة المسؤول */
         .admin-overlay {
             display: none;
             position: fixed;
@@ -605,7 +593,7 @@
     <div class="container">
         <header>
             <div class="firebase-status" id="firebaseStatus">
-                <i class="fas fa-circle"></i> <span>جاري الاتصال...</span>
+                <i class="fas fa-circle"></i> <span>وضع محلي - جاهز</span>
             </div>
             <button class="admin-panel-btn" id="adminBtn">
                 <i class="fas fa-user-shield"></i> لوحة التحكم
@@ -657,7 +645,7 @@
         
         <footer>
             <p>جميع الصور المرفوعة تظهر علانية للجميع على جميع الأجهزة. يرجى عدم رفع صور شخصية أو محتوى غير لائق.</p>
-            <p>© 2023 موقع رفع الصور العام. جميع الصور مخزنة على سحابة Firebase وتظهر للجميع.</p>
+            <p>© 2023 موقع رفع الصور العام. جميع الصور مخزنة محلياً على جهازك.</p>
         </footer>
     </div>
     
@@ -682,7 +670,7 @@
                     </div>
                     <div class="stat-card size">
                         <div class="stat-label">الحالة</div>
-                        <div class="stat-value" id="firebaseStatusText">جار التحميل</div>
+                        <div class="stat-value" id="firebaseStatusText">محلي</div>
                     </div>
                 </div>
                 
@@ -709,22 +697,6 @@
     <div class="notification" id="notification"></div>
     
     <script>
-        // تهيئة Firebase - استبدل هذه القيم بقيم مشروعك
-        // اذهب إلى: console.firebase.google.com -> مشروعك -> Project settings -> General -> Your apps -> Firebase SDK snippet -> Config
-        const firebaseConfig = {
-            apiKey: "AIzaSyC4wD2z9v8Q1qXq6z9Z8Y7X6v5nBcVfGtHj",
-            authDomain: "public-image-uploader.firebaseapp.com",
-            projectId: "public-image-uploader",
-            storageBucket: "public-image-uploader.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef1234567890abcdef"
-        };
-        
-        // بدلاً من ذلك، يمكنك استخدام Firebase Emulator للاختبار المحلي
-        // أو استخدام نسخة مجانية من Firebase
-        // هنا سأستخدم محاكي Firebase للاختبار
-        let USE_FIREBASE_EMULATOR = true; // ضع false إذا كنت تستخدم Firebase حقيقي
-        
         // العناصر الرئيسية
         const imageInput = document.getElementById('imageInput');
         const uploadBtn = document.getElementById('uploadBtn');
@@ -749,129 +721,12 @@
         
         // بيانات التطبيق
         let uploadedImages = [];
-        let db, storage;
         
         // تهيئة الموقع عند التحميل
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                // تهيئة Firebase
-                await initFirebase();
-                
-                // إعداد واجهة المستخدم
-                setupUI();
-                
-                // تحميل الصور من Firebase
-                await loadImages();
-                
-            } catch (error) {
-                console.error("خطأ في التهيئة:", error);
-                showNotification("حدث خطأ في الاتصال بالخادم. جاري استخدام وضع عدم الاتصال.", "error");
-                loadLocalImages();
-            }
+        document.addEventListener('DOMContentLoaded', function() {
+            setupUI();
+            loadImages();
         });
-        
-        // تهيئة Firebase
-        async function initFirebase() {
-            try {
-                // تهيئة Firebase
-                firebase.initializeApp(firebaseConfig);
-                
-                if (USE_FIREBASE_EMULATOR) {
-                    // استخدام المحاكي المحلي (للاختبار)
-                    db = firebase.firestore();
-                    storage = firebase.storage();
-                    
-                    // محاكاة اتصال Firebase
-                    setTimeout(() => {
-                        updateFirebaseStatus(true);
-                        showNotification("تم الاتصال بخادم الصور (وضع المحاكاة)", "success");
-                    }, 1000);
-                } else {
-                    // استخدام Firebase الحقيقي
-                    db = firebase.firestore();
-                    storage = firebase.storage();
-                    
-                    // اختبار الاتصال
-                    await db.collection('images').limit(1).get();
-                    updateFirebaseStatus(true);
-                    showNotification("تم الاتصال بخادم الصور بنجاح", "success");
-                }
-            } catch (error) {
-                console.error("خطأ في تهيئة Firebase:", error);
-                updateFirebaseStatus(false);
-                
-                // استخدام تخزين محلي كبديل
-                db = {
-                    collection: (name) => ({
-                        add: async (data) => {
-                            const id = Date.now().toString();
-                            const images = JSON.parse(localStorage.getItem('firebase_images') || '[]');
-                            images.unshift({ id, ...data });
-                            localStorage.setItem('firebase_images', JSON.stringify(images));
-                            return { id };
-                        },
-                        orderBy: () => ({
-                            limit: () => ({
-                                get: async () => ({
-                                    docs: []
-                                })
-                            }),
-                            get: async () => {
-                                const images = JSON.parse(localStorage.getItem('firebase_images') || '[]');
-                                return {
-                                    docs: images.map(img => ({
-                                        id: img.id,
-                                        data: () => img
-                                    }))
-                                };
-                            },
-                            onSnapshot: (callback) => {
-                                const images = JSON.parse(localStorage.getItem('firebase_images') || '[]');
-                                callback({
-                                    docs: images.map(img => ({
-                                        id: img.id,
-                                        data: () => img
-                                    }))
-                                });
-                                
-                                // محاكاة التحديثات في الوقت الحقيقي
-                                window.addEventListener('storage', () => {
-                                    const updatedImages = JSON.parse(localStorage.getItem('firebase_images') || '[]');
-                                    callback({
-                                        docs: updatedImages.map(img => ({
-                                            id: img.id,
-                                            data: () => img
-                                        }))
-                                    });
-                                });
-                            }
-                        }),
-                        doc: (id) => ({
-                            delete: async () => {
-                                let images = JSON.parse(localStorage.getItem('firebase_images') || '[]');
-                                images = images.filter(img => img.id !== id);
-                                localStorage.setItem('firebase_images', JSON.stringify(images));
-                                window.dispatchEvent(new Event('storage'));
-                            }
-                        })
-                    })
-                };
-                
-                storage = {
-                    ref: () => ({
-                        putString: async () => ({
-                            ref: {
-                                getDownloadURL: async () => {
-                                    return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
-                                }
-                            }
-                        })
-                    })
-                };
-                
-                showNotification("جاري استخدام وضع عدم الاتصال. الصور ستظهر محلياً فقط.", "warning");
-            }
-        }
         
         // إعداد واجهة المستخدم
         function setupUI() {
@@ -917,6 +772,8 @@
             closeAdmin.addEventListener('click', closeAdminPanel);
             deleteAllBtn.addEventListener('click', deleteAllImages);
             exportBtn.addEventListener('click', exportImagesData);
+            
+            showNotification("الموقع جاهز! يمكنك رفع الصور الآن.", "success");
         }
         
         // التعامل مع اختيار الملف
@@ -961,8 +818,8 @@
             }
         }
         
-        // رفع الصورة إلى Firebase
-        async function uploadImage() {
+        // رفع الصورة
+        function uploadImage() {
             if (!imageInput.files || !imageInput.files[0]) {
                 showNotification('يرجى اختيار صورة أولاً', 'error');
                 return;
@@ -971,115 +828,54 @@
             const file = imageInput.files[0];
             showLoading(true);
             
-            try {
-                // تحويل الصورة إلى base64
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    try {
-                        const base64Image = e.target.result;
-                        
-                        // إنشاء معرف فريد للصورة
-                        const imageId = Date.now().toString();
-                        const imageName = `${imageId}_${file.name}`;
-                        
-                        // رفع الصورة إلى Firebase Storage
-                        const storageRef = storage.ref().child('images/' + imageName);
-                        await storageRef.putString(base64Image, 'data_url');
-                        
-                        // الحصول على رابط الصورة
-                        const imageUrl = await storageRef.getDownloadURL();
-                        
-                        // إنشاء كائن للصورة
-                        const imageData = {
-                            id: imageId,
-                            imageUrl: imageUrl,
-                            name: file.name,
-                            size: file.size,
-                            uploadTime: new Date().toLocaleString('ar-SA'),
-                            uploadDate: new Date().toISOString().split('T')[0],
-                            uploadTimestamp: firebase.firestore.FieldValue.serverTimestamp()
-                        };
-                        
-                        // حفظ بيانات الصورة في Firestore
-                        await db.collection('images').add(imageData);
-                        
-                        // إعادة تعيين واجهة الرفع
-                        resetUpload();
-                        
-                        // إظهار إشعار النجاح
-                        showNotification('تم رفع الصورة بنجاح! سيراها الجميع الآن.', 'success');
-                        
-                    } catch (error) {
-                        console.error("خطأ في رفع الصورة:", error);
-                        
-                        // محاولة بديلة: حفظ الصورة محلياً
-                        const imageData = {
-                            id: Date.now().toString(),
-                            imageUrl: e.target.result,
-                            name: file.name,
-                            size: file.size,
-                            uploadTime: new Date().toLocaleString('ar-SA'),
-                            uploadDate: new Date().toISOString().split('T')[0],
-                            uploadTimestamp: new Date().toISOString()
-                        };
-                        
-                        // إضافة الصورة محلياً
-                        uploadedImages.unshift(imageData);
-                        displayImages();
-                        updateImageCount();
-                        
-                        showNotification('تم رفع الصورة محلياً (وضع عدم الاتصال)', 'warning');
-                    } finally {
-                        showLoading(false);
-                    }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageData = {
+                    id: Date.now().toString(),
+                    imageUrl: e.target.result,
+                    name: file.name,
+                    size: file.size,
+                    uploadTime: new Date().toLocaleString('ar-SA'),
+                    uploadDate: new Date().toISOString().split('T')[0],
+                    uploadTimestamp: new Date().toISOString()
                 };
                 
-                reader.readAsDataURL(file);
+                // إضافة الصورة إلى المصفوفة
+                uploadedImages.unshift(imageData);
                 
-            } catch (error) {
-                console.error("خطأ في رفع الصورة:", error);
-                showNotification('حدث خطأ أثناء رفع الصورة', 'error');
+                // حفظ في التخزين المحلي
+                saveImages();
+                
+                // تحديث العرض
+                displayImages();
+                updateImageCount();
+                
+                // إعادة تعيين واجهة الرفع
+                resetUpload();
+                
+                // إظهار إشعار النجاح
+                showNotification('تم رفع الصورة بنجاح!', 'success');
+                
                 showLoading(false);
-            }
+            };
+            
+            reader.readAsDataURL(file);
         }
         
-        // تحميل الصور من Firebase
-        async function loadImages() {
-            showLoading(true);
-            
-            try {
-                // الاشتراك في تحديثات الصور في الوقت الحقيقي
-                db.collection('images').orderBy('uploadTimestamp', 'desc').onSnapshot((snapshot) => {
-                    uploadedImages = [];
-                    snapshot.forEach((doc) => {
-                        const data = doc.data();
-                        uploadedImages.push({
-                            id: doc.id,
-                            ...data
-                        });
-                    });
-                    
-                    displayImages();
-                    updateImageCount();
-                    showLoading(false);
-                });
-                
-            } catch (error) {
-                console.error("خطأ في تحميل الصور:", error);
-                loadLocalImages();
-                showLoading(false);
-            }
+        // حفظ الصور في التخزين المحلي
+        function saveImages() {
+            localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
         }
         
         // تحميل الصور من التخزين المحلي
-        function loadLocalImages() {
-            const localImages = JSON.parse(localStorage.getItem('uploadedImages') || '[]');
-            if (localImages.length > 0) {
-                uploadedImages = localImages;
+        function loadImages() {
+            const savedImages = localStorage.getItem('uploadedImages');
+            if (savedImages) {
+                uploadedImages = JSON.parse(savedImages);
                 displayImages();
                 updateImageCount();
             } else {
-                // إضافة صور افتراضية
+                // إضافة صور افتراضية للمرة الأولى
                 addDefaultImages();
             }
         }
@@ -1111,16 +907,12 @@
             imageCard.setAttribute('data-id', image.id);
             imageCard.setAttribute('data-name', image.name.toLowerCase());
             
-            const deleteBtn = isAdminView ? 
-                `<button class="delete-btn" onclick="deleteImage('${image.id}', true)" title="حذف الصورة">
-                    <i class="fas fa-trash"></i>
-                </button>` : 
-                `<button class="delete-btn" onclick="deleteImage('${image.id}')" title="حذف الصورة">
+            const deleteBtn = `<button class="delete-btn" onclick="deleteImage('${image.id}', ${isAdminView})" title="حذف الصورة">
                     <i class="fas fa-trash"></i>
                 </button>`;
             
             imageCard.innerHTML = `
-                <img src="${image.imageUrl || image.dataUrl}" alt="${image.name}" loading="lazy">
+                <img src="${image.imageUrl}" alt="${image.name}" loading="lazy">
                 <div class="image-actions">
                     ${deleteBtn}
                 </div>
@@ -1136,82 +928,51 @@
         }
         
         // حذف صورة
-        async function deleteImage(id, fromAdmin = false) {
+        function deleteImage(id, fromAdmin = false) {
             if (!confirm('هل أنت متأكد من حذف هذه الصورة؟')) {
                 return;
             }
             
-            showLoading(true);
+            uploadedImages = uploadedImages.filter(image => image.id !== id);
+            saveImages();
+            displayImages();
+            updateImageCount();
             
-            try {
-                // حذف الصورة من Firebase
-                await db.collection('images').doc(id).delete();
-                
-                // إعادة عرض الصور
-                displayImages();
-                updateImageCount();
-                
-                // إذا كنا في وضع المسؤول، قم بتحديث لوحة التحكم
-                if (fromAdmin) {
-                    updateAdminPanel();
-                }
-                
-                // إظهار إشعار النجاح
-                showNotification('تم حذف الصورة بنجاح', 'success');
-                
-            } catch (error) {
-                console.error("خطأ في حذف الصورة:", error);
-                
-                // محاولة الحذف محلياً
-                uploadedImages = uploadedImages.filter(image => image.id !== id);
-                displayImages();
-                updateImageCount();
-                
-                showNotification('تم حذف الصورة محلياً', 'warning');
-            } finally {
-                showLoading(false);
+            if (fromAdmin) {
+                updateAdminPanel();
             }
+            
+            showNotification('تم حذف الصورة بنجاح', 'success');
         }
         
         // حذف جميع الصور
-        async function deleteAllImages() {
+        function deleteAllImages() {
+            if (uploadedImages.length === 0) {
+                showNotification('لا توجد صور لحذفها', 'warning');
+                return;
+            }
+            
             if (!confirm('هل أنت متأكد من حذف جميع الصور؟ لا يمكن التراجع عن هذا الإجراء!')) {
                 return;
             }
             
-            showLoading(true);
+            uploadedImages = [];
+            saveImages();
+            displayImages();
+            updateImageCount();
+            updateAdminPanel();
             
-            try {
-                // حذف جميع الصور من Firebase
-                const snapshot = await db.collection('images').get();
-                const deletePromises = [];
-                snapshot.forEach((doc) => {
-                    deletePromises.push(db.collection('images').doc(doc.id).delete());
-                });
-                
-                await Promise.all(deletePromises);
-                
-                // إعادة تعيين البيانات المحلية
-                uploadedImages = [];
-                
-                // تحديث العرض
-                displayImages();
-                updateImageCount();
-                updateAdminPanel();
-                
-                showNotification('تم حذف جميع الصور بنجاح', 'success');
-                closeAdminPanel();
-                
-            } catch (error) {
-                console.error("خطأ في حذف جميع الصور:", error);
-                showNotification('حدث خطأ أثناء حذف الصور', 'error');
-            } finally {
-                showLoading(false);
-            }
+            showNotification('تم حذف جميع الصور بنجاح', 'success');
+            closeAdminPanel();
         }
         
         // تصدير بيانات الصور
         function exportImagesData() {
+            if (uploadedImages.length === 0) {
+                showNotification('لا توجد صور لتصديرها', 'warning');
+                return;
+            }
+            
             const dataStr = JSON.stringify(uploadedImages, null, 2);
             const dataBlob = new Blob([dataStr], {type: 'application/json'});
             const url = URL.createObjectURL(dataBlob);
@@ -1259,19 +1020,6 @@
         // تحديث عداد الصور
         function updateImageCount() {
             imageCount.textContent = `${uploadedImages.length} صورة`;
-        }
-        
-        // تحديث حالة Firebase
-        function updateFirebaseStatus(connected) {
-            if (connected) {
-                firebaseStatus.className = 'firebase-status connected';
-                firebaseStatus.innerHTML = '<i class="fas fa-circle"></i> <span>متصل بخادم الصور</span>';
-                firebaseStatusText.textContent = 'متصل';
-            } else {
-                firebaseStatus.className = 'firebase-status disconnected';
-                firebaseStatus.innerHTML = '<i class="fas fa-circle"></i> <span>غير متصل - وضع محلي</span>';
-                firebaseStatusText.textContent = 'غير متصل';
-            }
         }
         
         // إعادة تعيين واجهة الرفع
@@ -1355,31 +1103,35 @@
                     imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80',
                     name: 'منظر طبيعي',
                     size: 2048000,
-                    uploadTime: '2023-10-15 10:30',
-                    uploadDate: '2023-10-15'
+                    uploadTime: new Date().toLocaleString('ar-SA'),
+                    uploadDate: new Date().toISOString().split('T')[0]
                 },
                 {
                     id: '2',
                     imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80',
                     name: 'السماء ليلاً',
                     size: 1856000,
-                    uploadTime: '2023-10-14 15:45',
-                    uploadDate: '2023-10-14'
+                    uploadTime: new Date().toLocaleString('ar-SA'),
+                    uploadDate: new Date().toISOString().split('T')[0]
                 },
                 {
                     id: '3',
                     imageUrl: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80',
                     name: 'شاطئ البحر',
                     size: 2560000,
-                    uploadTime: '2023-10-13 09:20',
-                    uploadDate: '2023-10-13'
+                    uploadTime: new Date().toLocaleString('ar-SA'),
+                    uploadDate: new Date().toISOString().split('T')[0]
                 }
             ];
             
             uploadedImages = defaultImages;
+            saveImages();
             displayImages();
             updateImageCount();
         }
+        
+        // جعل الدوال متاحة عالمياً للاستخدام من قبل الأحداث في HTML
+        window.deleteImage = deleteImage;
     </script>
 </body>
 </html>
