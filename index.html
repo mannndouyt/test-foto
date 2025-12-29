@@ -353,14 +353,6 @@
             box-shadow: var(--box-shadow-hover);
         }
         
-        /* Charts */
-        .charts-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-        
         /* Notifications */
         .notification {
             position: fixed;
@@ -462,10 +454,6 @@
             .search-box {
                 flex-direction: column;
                 border-radius: var(--border-radius);
-            }
-            
-            .charts-container {
-                grid-template-columns: 1fr;
             }
         }
         
@@ -770,19 +758,6 @@
                     </div>
                 </section>
                 
-                <!-- ========== CHARTS SECTION ========== -->
-                <section class="charts-container" id="chartsContainer">
-                    <div class="chart-card card">
-                        <h3 class="section-title"><i class="fas fa-chart-pie"></i> توزيع العملاء حسب الولاية</h3>
-                        <canvas id="stateChart"></canvas>
-                    </div>
-                    
-                    <div class="chart-card card">
-                        <h3 class="section-title"><i class="fas fa-chart-bar"></i> إحصاءات البيانات</h3>
-                        <canvas id="statsChart"></canvas>
-                    </div>
-                </section>
-                
                 <!-- ========== DATA TABLE SECTION ========== -->
                 <section class="data-table-section card">
                     <div class="d-flex justify-between align-center mb-20">
@@ -827,7 +802,7 @@
         <!-- ========== FOOTER ========== -->
         <footer class="text-center" style="padding: 25px; color: #666; border-top: 1px solid #eee;">
             <p>© 2023 نظام إدارة بيانات العملاء المتقدم. جميع الحقوق محفوظة.</p>
-            <p class="mt-20">تم التطوير باستخدام JavaScript و SheetJS و Chart.js</p>
+            <p class="mt-20">تم التطوير باستخدام JavaScript و SheetJS</p>
         </footer>
     </div>
 
@@ -850,10 +825,6 @@
                 lastUpload: null
             };
             
-            // Chart instances
-            let stateChart = null;
-            let statsChart = null;
-            
             // DOM Elements cache
             const elements = {};
             
@@ -864,7 +835,6 @@
                 updateStatsDisplay();
                 setupEventListeners();
                 loadSavedData();
-                hideCharts();
                 showNotification('مرحباً بك في نظام إدارة بيانات العملاء المتقدم!', 'info');
             }
             
@@ -911,9 +881,6 @@
                 elements.statClients = document.getElementById('statClients');
                 elements.statUploads = document.getElementById('statUploads');
                 elements.statSearches = document.getElementById('statSearches');
-                
-                // Charts container
-                elements.chartsContainer = document.getElementById('chartsContainer');
                 
                 // Action buttons
                 elements.clearDataBtn = document.getElementById('clearDataBtn');
@@ -1094,7 +1061,6 @@
                 displayFileInfo(file);
                 displayDataTable();
                 updateDashboard();
-                createCharts();
                 populateFilters();
                 
                 showNotification(`تم تحميل الملف بنجاح! تم تحميل ${fileData.length} سجل.`, 'success');
@@ -1668,136 +1634,6 @@
                 }
             }
             
-            // ========== CHART FUNCTIONS ==========
-            function createCharts() {
-                if (fileData.length === 0) {
-                    elements.chartsContainer.style.display = 'none';
-                    return;
-                }
-                
-                elements.chartsContainer.style.display = 'grid';
-                
-                createStateChart();
-                createStatsChart();
-            }
-            
-            function createStateChart() {
-                const stateColumn = findStateColumn();
-                if (!stateColumn) return;
-                
-                const stateCounts = {};
-                fileData.forEach(client => {
-                    const state = client[stateColumn] || 'غير محدد';
-                    stateCounts[state] = (stateCounts[state] || 0) + 1;
-                });
-                
-                const stateLabels = Object.keys(stateCounts);
-                const stateData = Object.values(stateCounts);
-                
-                const backgroundColors = [
-                    'rgba(67, 97, 238, 0.7)',
-                    'rgba(114, 9, 183, 0.7)',
-                    'rgba(248, 37, 133, 0.7)',
-                    'rgba(76, 201, 240, 0.7)',
-                    'rgba(248, 150, 30, 0.7)',
-                    'rgba(249, 65, 68, 0.7)'
-                ];
-                
-                if (stateChart) stateChart.destroy();
-                
-                const ctx = document.getElementById('stateChart').getContext('2d');
-                stateChart = new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: stateLabels,
-                        datasets: [{
-                            data: stateData,
-                            backgroundColor: backgroundColors.slice(0, stateLabels.length),
-                            borderWidth: 2,
-                            borderColor: 'white'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                rtl: true
-                            }
-                        }
-                    }
-                });
-            }
-            
-            function createStatsChart() {
-                const statsData = {
-                    'بيانات كاملة': 0,
-                    'بيانات ناقصة': 0,
-                    'أرقام هاتف': 0,
-                    'عنواين بريد': 0
-                };
-                
-                const phoneColumn = findPhoneColumn();
-                const emailColumn = findEmailColumn();
-                const nameColumn = findNameColumn();
-                
-                fileData.forEach(client => {
-                    if (nameColumn && client[nameColumn] && phoneColumn && client[phoneColumn]) {
-                        statsData['بيانات كاملة']++;
-                    } else {
-                        statsData['بيانات ناقصة']++;
-                    }
-                    
-                    if (phoneColumn && client[phoneColumn]) {
-                        statsData['أرقام هاتف']++;
-                    }
-                    
-                    if (emailColumn && client[emailColumn]) {
-                        statsData['عنواين بريد']++;
-                    }
-                });
-                
-                const statsLabels = Object.keys(statsData);
-                const statsValues = Object.values(statsData);
-                
-                if (statsChart) statsChart.destroy();
-                
-                const ctx = document.getElementById('statsChart').getContext('2d');
-                statsChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: statsLabels,
-                        datasets: [{
-                            label: 'عدد السجلات',
-                            data: statsValues,
-                            backgroundColor: 'rgba(67, 97, 238, 0.7)',
-                            borderColor: 'rgba(67, 97, 238, 1)',
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    stepSize: Math.ceil(Math.max(...statsValues) / 10)
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        }
-                    }
-                });
-            }
-            
-            function hideCharts() {
-                elements.chartsContainer.style.display = 'none';
-            }
-            
             // ========== EXPORT FUNCTIONS ==========
             function exportAllData() {
                 if (fileData.length === 0) {
@@ -1894,7 +1730,6 @@
                             displayFileInfo({ name: 'ملف محفوظ مسبقاً' });
                             displayDataTable();
                             updateDashboard();
-                            createCharts();
                             populateFilters();
                             showNotification(`تم تحميل ${fileData.length} سجل من الذاكرة المحلية.`, 'success');
                         }
@@ -1916,7 +1751,6 @@
                     elements.fileInfo.classList.add('hidden');
                     elements.clientInfo.classList.remove('active');
                     elements.multipleResults.classList.add('hidden');
-                    elements.chartsContainer.style.display = 'none';
                     
                     elements.tableHead.innerHTML = '';
                     elements.tableBody.innerHTML = '';
