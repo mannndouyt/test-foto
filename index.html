@@ -3,418 +3,333 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رفع الصور العامة - موقع تفاعلي للجميع</title>
+    <title>نظام إدارة بيانات العملاء المتقدم - Customer Data Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- ==================== STYLESHEET ==================== -->
     <style>
-        /* نفس الأنماط السابقة... */
+        /* ========== CSS VARIABLES ========== */
+        :root {
+            /* Primary Colors */
+            --primary-color: #4361ee;
+            --primary-dark: #3a56d4;
+            --primary-light: #eef2ff;
+            
+            /* Secondary Colors */
+            --secondary-color: #7209b7;
+            --accent-color: #f72585;
+            
+            /* Status Colors */
+            --success-color: #4cc9f0;
+            --warning-color: #f8961e;
+            --danger-color: #f94144;
+            
+            /* Neutral Colors */
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --border-color: #dee2e6;
+            
+            /* UI Properties */
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --box-shadow-hover: 0 15px 40px rgba(0, 0, 0, 0.12);
+            --transition: all 0.3s ease;
+            --container-width: 1400px;
+        }
+        
+        /* ========== RESET & BASE STYLES ========== */
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', 'Tajawal', sans-serif;
         }
         
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            color: #333;
-            line-height: 1.6;
-            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: var(--dark-color);
+            line-height: 1.7;
             min-height: 100vh;
-            direction: rtl;
+            padding: 20px;
         }
         
+        /* ========== BACKGROUND PATTERN ========== */
+        .background-pattern {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(67, 97, 238, 0.03) 0%, transparent 20%),
+                radial-gradient(circle at 80% 70%, rgba(114, 9, 183, 0.03) 0%, transparent 20%),
+                radial-gradient(circle at 40% 80%, rgba(248, 37, 133, 0.02) 0%, transparent 20%);
+            z-index: -1;
+        }
+        
+        /* ========== CONTAINER & LAYOUT ========== */
         .container {
-            max-width: 1400px;
+            max-width: var(--container-width);
             margin: 0 auto;
-        }
-        
-        header {
-            text-align: center;
-            padding: 30px 0;
-            background-color: #fff;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-            position: relative;
-        }
-        
-        h1 {
-            color: #2c3e50;
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            position: relative;
-            display: inline-block;
-        }
-        
-        h1:after {
-            content: '';
-            position: absolute;
-            width: 70%;
-            height: 4px;
-            background: linear-gradient(to right, #3498db, #2ecc71);
-            bottom: -10px;
-            right: 15%;
-            border-radius: 2px;
-        }
-        
-        .description {
-            font-size: 1.2rem;
-            color: #555;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-        
-        .firebase-status {
-            position: absolute;
-            left: 30px;
-            top: 30px;
-            background: #27ae60;
-            color: white;
-            border-radius: 20px;
-            padding: 8px 20px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .admin-panel-btn {
-            position: absolute;
-            right: 30px;
-            top: 30px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 12px 25px;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 10px rgba(231, 76, 60, 0.3);
-        }
-        
-        .admin-panel-btn:hover {
-            background: #c0392b;
-            transform: translateY(-3px);
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
         }
         
         .main-content {
             display: flex;
             flex-wrap: wrap;
-            gap: 30px;
-            margin-bottom: 40px;
+            min-height: 800px;
         }
         
-        .upload-section {
+        .sidebar {
             flex: 1;
             min-width: 300px;
-            background-color: #fff;
-            border-radius: 15px;
+            background: linear-gradient(to bottom, #f8fafd, #f0f5ff);
             padding: 30px;
+            border-left: 1px solid var(--border-color);
+        }
+        
+        .content-area {
+            flex: 3;
+            min-width: 700px;
+            padding: 30px;
+        }
+        
+        /* ========== HEADER STYLES ========== */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 30px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .logo {
+            background: white;
+            color: var(--primary-color);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-left: 20px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
-        .upload-section h2 {
-            color: #3498db;
+        .page-title {
+            font-size: 2.8rem;
+            margin-bottom: 5px;
+            font-weight: 800;
+        }
+        
+        .page-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
             margin-bottom: 20px;
+            font-weight: 300;
+        }
+        
+        /* ========== COMPONENT STYLES ========== */
+        /* Card Component */
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 25px;
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            box-shadow: var(--box-shadow-hover);
+        }
+        
+        /* Section Title */
+        .section-title {
+            color: var(--dark-color);
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
             display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-left: 10px;
+            color: var(--primary-color);
+        }
+        
+        /* Button Styles */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
             align-items: center;
             gap: 10px;
         }
         
+        .btn-primary {
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            color: white;
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--dark-color);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-color);
+        }
+        
+        /* Upload Area */
         .upload-area {
-            border: 3px dashed #3498db;
-            border-radius: 10px;
-            padding: 40px 20px;
+            border: 3px dashed var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 50px 20px;
             text-align: center;
-            margin-bottom: 25px;
+            background-color: #f8fbff;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: var(--transition);
         }
         
         .upload-area:hover {
-            background-color: #f0f8ff;
-            border-color: #2ecc71;
+            background-color: #f0f7ff;
+            border-color: var(--secondary-color);
+            transform: translateY(-5px);
         }
         
         .upload-icon {
-            font-size: 60px;
-            color: #3498db;
-            margin-bottom: 15px;
-        }
-        
-        .upload-text {
-            font-size: 1.2rem;
-            color: #555;
-            margin-bottom: 10px;
-        }
-        
-        .file-info {
-            font-size: 0.9rem;
-            color: #777;
-        }
-        
-        #imageInput {
-            display: none;
-        }
-        
-        .upload-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(to right, #3498db, #2ecc71);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 20px;
-        }
-        
-        .upload-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
-        }
-        
-        .upload-btn:disabled {
-            background: #95a5a6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .gallery-section {
-            flex: 2;
-            min-width: 300px;
-            background-color: #fff;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-        
-        .gallery-section h2 {
-            color: #2ecc71;
+            font-size: 4rem;
+            color: var(--primary-color);
             margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
         
-        .gallery-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
+        /* Search Box */
         .search-box {
+            display: flex;
+            margin-bottom: 10px;
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .search-input {
             flex: 1;
-            min-width: 200px;
-            position: relative;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 12px 45px 12px 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
+            padding: 18px 25px;
+            border: none;
+            background: #f8f9fa;
             font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .search-box input:focus {
-            border-color: #3498db;
             outline: none;
         }
         
-        .search-box i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #777;
+        .search-input:focus {
+            background: white;
+            box-shadow: inset 0 0 0 2px var(--primary-color);
         }
         
-        .gallery {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+        /* Client Info Display */
+        .client-info {
+            display: none;
+            animation: slideInUp 0.6s ease-out;
         }
         
-        .image-card {
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .image-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        }
-        
-        .image-card img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
+        .client-info.active {
             display: block;
         }
         
-        .image-info {
-            padding: 15px;
-            background-color: #f9f9f9;
-        }
-        
-        .image-time {
-            font-size: 0.8rem;
-            color: #777;
-            margin-top: 5px;
-        }
-        
-        .image-actions {
-            position: absolute;
-            top: 10px;
-            left: 10px;
+        .client-header {
             display: flex;
-            gap: 5px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
         }
         
-        .image-card:hover .image-actions {
-            opacity: 1;
-        }
-        
-        .delete-btn {
-            background-color: rgba(231, 76, 60, 0.9);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            width: 35px;
-            height: 35px;
+        .client-avatar {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .delete-btn:hover {
-            background-color: #c0392b;
-            transform: scale(1.1);
-        }
-        
-        .empty-gallery {
-            text-align: center;
-            padding: 40px 20px;
-            color: #777;
-            font-size: 1.1rem;
-            grid-column: 1 / -1;
-        }
-        
-        .empty-gallery i {
-            font-size: 50px;
-            margin-bottom: 15px;
-            color: #ddd;
-        }
-        
-        .live-badge {
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            background: #e74c3c;
             color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            animation: pulse 2s infinite;
+            font-size: 2.5rem;
+            margin-left: 25px;
+            box-shadow: 0 10px 25px rgba(67, 97, 238, 0.3);
         }
         
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        /* Results List */
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 5px;
         }
         
-        footer {
-            text-align: center;
-            padding: 20px;
-            color: #555;
-            font-size: 0.9rem;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-        }
-        
-        .admin-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .admin-panel {
-            background-color: #fff;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 1000px;
-            max-height: 90vh;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-        
-        .admin-header {
-            background: linear-gradient(to right, #2c3e50, #34495e);
-            color: white;
-            padding: 25px;
+        .result-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-        
-        .admin-header h2 {
-            color: white;
-            margin: 0;
-        }
-        
-        .close-admin {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 1.2rem;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            transition: var(--transition);
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         
-        .admin-content {
-            padding: 25px;
-            max-height: calc(90vh - 100px);
-            overflow-y: auto;
+        .result-item:hover {
+            background: white;
+            border-color: var(--primary-color);
+            transform: translateX(-5px);
         }
         
-        .admin-stats {
+        /* Dashboard Stats */
+        .dashboard-stats {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 20px;
@@ -422,716 +337,1695 @@
         }
         
         .stat-card {
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            border-left: 5px solid #3498db;
-        }
-        
-        .stat-card.total {
-            border-left-color: #2ecc71;
-        }
-        
-        .stat-card.recent {
-            border-left-color: #e74c3c;
-        }
-        
-        .stat-card.size {
-            border-left-color: #f39c12;
-        }
-        
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin: 10px 0;
-        }
-        
-        .stat-label {
-            color: #7f8c8d;
-            font-size: 1rem;
-        }
-        
-        .admin-controls {
-            margin-top: 30px;
-        }
-        
-        .admin-actions {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
             display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        
-        .admin-btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
+            text-align: center;
+            transition: var(--transition);
         }
         
-        .delete-all-btn {
-            background-color: #e74c3c;
-            color: white;
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--box-shadow-hover);
         }
         
-        .delete-all-btn:hover {
-            background-color: #c0392b;
+        /* Charts */
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
         }
         
-        .export-btn {
-            background-color: #3498db;
-            color: white;
-        }
-        
-        .export-btn:hover {
-            background-color: #2980b9;
-        }
-        
+        /* Notifications */
         .notification {
             position: fixed;
             top: 20px;
             left: 20px;
-            right: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            text-align: center;
-            z-index: 1000;
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: all 0.3s ease;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        
-        .notification.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        .notification.success {
-            background-color: #2ecc71;
-        }
-        
-        .notification.error {
-            background-color: #e74c3c;
-        }
-        
-        .notification.warning {
-            background-color: #f39c12;
-        }
-        
-        .loading {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 2000;
-            justify-content: center;
+            padding: 20px 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            z-index: 10000;
+            display: flex;
             align-items: center;
+            gap: 15px;
+            max-width: 400px;
+            animation: slideInRight 0.5s ease-out, fadeOut 0.5s ease-out 4.5s forwards;
         }
         
-        .loading.show {
+        /* ========== UTILITY CLASSES ========== */
+        .hidden {
+            display: none !important;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+        
+        .mt-20 {
+            margin-top: 20px;
+        }
+        
+        .d-flex {
             display: flex;
         }
         
-        .spinner {
-            width: 70px;
-            height: 70px;
-            border: 8px solid #f3f3f3;
-            border-top: 8px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .align-center {
+            align-items: center;
+        }
+        
+        .justify-between {
+            justify-content: space-between;
+        }
+        
+        .gap-10 {
+            gap: 10px;
+        }
+        
+        /* ========== ANIMATIONS ========== */
+        @keyframes slideInUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(-30px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
         }
         
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
         
-        @media (max-width: 768px) {
+        /* ========== RESPONSIVE DESIGN ========== */
+        @media (max-width: 1200px) {
             .main-content {
                 flex-direction: column;
             }
             
-            h1 {
+            .sidebar, .content-area {
+                min-width: 100%;
+            }
+            
+            .sidebar {
+                border-left: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 25px 20px;
+            }
+            
+            .page-title {
                 font-size: 2.2rem;
             }
             
-            .firebase-status, .admin-panel-btn {
-                position: relative;
-                left: 0;
-                right: 0;
-                top: 0;
-                margin-bottom: 20px;
-                width: 100%;
-                justify-content: center;
+            .sidebar, .content-area {
+                padding: 20px;
             }
             
-            header {
-                padding-top: 100px;
+            .search-box {
+                flex-direction: column;
+                border-radius: var(--border-radius);
             }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .dashboard-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .client-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+            
+            .client-avatar {
+                margin-left: 0;
+            }
+        }
+        
+        /* ========== CUSTOM COMPONENTS ========== */
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(67, 97, 238, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        .tag {
+            background: #f0f7ff;
+            color: var(--primary-color);
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
-    <div class="loading" id="loading">
-        <div class="spinner"></div>
-    </div>
+    <!-- Background Pattern -->
+    <div class="background-pattern"></div>
     
+    <!-- Main Container -->
     <div class="container">
-        <header>
-            <div class="firebase-status" id="firebaseStatus">
-                <i class="fas fa-circle"></i> <span>وضع محلي - جاهز</span>
+        
+        <!-- ========== HEADER SECTION ========== -->
+        <header class="header">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div>
+                    <h1 class="page-title">نظام إدارة بيانات العملاء</h1>
+                    <p class="page-subtitle">أداة متكاملة لتحليل وإدارة بيانات العملاء من ملفات Excel</p>
+                </div>
             </div>
-            <button class="admin-panel-btn" id="adminBtn">
-                <i class="fas fa-user-shield"></i> لوحة التحكم
-            </button>
-            <h1><i class="fas fa-camera"></i> موقع رفع الصور العامة</h1>
-            <p class="description">يمكن لأي شخص رفع صوره هنا وسيتم عرضها علانية للجميع على جميع الأجهزة. قم بتحميل صورتك ليراها الجميع!</p>
-            <div class="live-badge">
-                <i class="fas fa-broadcast-tower"></i> مباشر
+            
+            <!-- Header Stats -->
+            <div class="d-flex gap-10 mt-20">
+                <div class="tag">
+                    <i class="fas fa-users"></i>
+                    <span>العملاء: <span id="totalClients">0</span></span>
+                </div>
+                <div class="tag">
+                    <i class="fas fa-columns"></i>
+                    <span>الأعمدة: <span id="totalColumns">0</span></span>
+                </div>
+                <div class="tag">
+                    <i class="fas fa-history"></i>
+                    <span>آخر تحديث: <span id="lastUpdate">-</span></span>
+                </div>
             </div>
         </header>
         
+        <!-- ========== MAIN CONTENT ========== -->
         <div class="main-content">
-            <section class="upload-section">
-                <h2><i class="fas fa-cloud-upload-alt"></i> رفع صورتك</h2>
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">
-                        <i class="fas fa-file-image"></i>
-                    </div>
-                    <p class="upload-text">انقر لاختيار صورة أو اسحبها وأفلتها هنا</p>
-                    <p class="file-info">يدعم الموقع الصور بصيغ JPG، PNG، GIF (بحد أقصى 5MB)</p>
-                </div>
-                <input type="file" id="imageInput" accept="image/*">
-                <button class="upload-btn" id="uploadBtn" disabled>
-                    <i class="fas fa-upload"></i> رفع الصورة للجميع
-                </button>
-                <p style="margin-top: 15px; font-size: 0.9rem; color: #777; text-align: center;">
-                    <i class="fas fa-info-circle"></i> سيتم عرض صورتك للجميع على جميع الأجهزة
-                </p>
-            </section>
             
-            <section class="gallery-section">
-                <h2><i class="fas fa-images"></i> معرض الصور العالمي</h2>
+            <!-- ========== SIDEBAR (LEFT PANEL) ========== -->
+            <aside class="sidebar">
                 
-                <div class="gallery-controls">
-                    <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="ابحث في الصور...">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <div>
-                        <span id="imageCount">جاري التحميل...</span>
-                    </div>
-                </div>
-                
-                <div class="gallery" id="imageGallery">
-                    <!-- سيتم عرض الصور هنا ديناميكيًا -->
-                </div>
-            </section>
-        </div>
-        
-        <footer>
-            <p>جميع الصور المرفوعة تظهر علانية للجميع على جميع الأجهزة. يرجى عدم رفع صور شخصية أو محتوى غير لائق.</p>
-            <p>© 2023 موقع رفع الصور العام. جميع الصور مخزنة محلياً على جهازك.</p>
-        </footer>
-    </div>
-    
-    <!-- لوحة تحكم المسؤول -->
-    <div class="admin-overlay" id="adminOverlay">
-        <div class="admin-panel">
-            <div class="admin-header">
-                <h2><i class="fas fa-user-shield"></i> لوحة تحكم المسؤول</h2>
-                <button class="close-admin" id="closeAdmin">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="admin-content">
-                <div class="admin-stats">
-                    <div class="stat-card total">
-                        <div class="stat-label">إجمالي الصور</div>
-                        <div class="stat-value" id="totalImages">0</div>
-                    </div>
-                    <div class="stat-card recent">
-                        <div class="stat-label">الصور المرفوعة اليوم</div>
-                        <div class="stat-value" id="todayImages">0</div>
-                    </div>
-                    <div class="stat-card size">
-                        <div class="stat-label">الحالة</div>
-                        <div class="stat-value" id="firebaseStatusText">محلي</div>
-                    </div>
-                </div>
-                
-                <div class="admin-controls">
-                    <h3><i class="fas fa-cogs"></i> إدارة الصور</h3>
-                    <div class="admin-actions">
-                        <button class="admin-btn delete-all-btn" id="deleteAllBtn">
-                            <i class="fas fa-trash"></i> حذف جميع الصور
+                <!-- File Upload Section -->
+                <section class="upload-section card">
+                    <h2 class="section-title"><i class="fas fa-cloud-upload-alt"></i> رفع البيانات</h2>
+                    
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-file-excel"></i>
+                        </div>
+                        <div class="mb-20">
+                            <strong>اسحب وأفلت ملف Excel هنا</strong>
+                            <p class="mt-20">أو انقر للاختيار من الجهاز</p>
+                        </div>
+                        <p class="mb-20">الملفات المدعومة: .xlsx, .xls, .csv</p>
+                        <button class="btn btn-primary" id="browseBtn">
+                            <i class="fas fa-folder-open"></i> اختر ملف Excel
                         </button>
-                        <button class="admin-btn export-btn" id="exportBtn">
-                            <i class="fas fa-download"></i> تصدير بيانات الصور
+                        <input type="file" id="fileInput" class="hidden" accept=".xlsx,.xls,.csv">
+                    </div>
+                    
+                    <!-- File Info -->
+                    <div class="file-info hidden" id="fileInfo">
+                        <div class="d-flex justify-between align-center mb-20">
+                            <h3><i class="fas fa-file-alt"></i> تفاصيل الملف</h3>
+                            <div class="d-flex gap-10">
+                                <button class="btn btn-secondary" id="clearDataBtn" title="مسح البيانات">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button class="btn btn-secondary" id="exportDataBtn" title="تصدير البيانات">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column gap-10">
+                            <p><strong>الملف المرفوع:</strong> <span id="fileName">-</span></p>
+                            <p><strong>عدد السجلات:</strong> <span id="recordCount">0</span></p>
+                            <p><strong>الأعمدة المتاحة:</strong> <span id="columnsList">-</span></p>
+                            <p><strong>تاريخ الرفع:</strong> <span id="uploadDate">-</span></p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Dashboard Stats -->
+                <section class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #4cc9f0, #4361ee); color: white;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-value" id="statClients">0</div>
+                        <div class="stat-label">إجمالي العملاء</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f8961e, #f94144); color: white;">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <div class="stat-value" id="statUploads">0</div>
+                        <div class="stat-label">الملفات المرفوعة</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #7209b7, #f72585); color: white;">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="stat-value" id="statSearches">0</div>
+                        <div class="stat-label">عمليات البحث</div>
+                    </div>
+                </section>
+                
+                <!-- Instructions -->
+                <section class="instructions card">
+                    <h3 class="section-title"><i class="fas fa-info-circle"></i> تعليمات الاستخدام</h3>
+                    <ul class="d-flex flex-column gap-10">
+                        <li>يجب أن يحتوي ملف Excel على عمود "الاسم" أو "اسم العميل"</li>
+                        <li>يفضل أن يحتوي الملف على الأعمدة التالية: الاسم، الهاتف، الولاية، البلدية</li>
+                        <li>يمكنك البحث باستخدام الاسم الكامل أو جزء منه، أو باستخدام رقم الهاتف</li>
+                        <li>يدعم النظام البحث المتقدم باستخدام عوامل التصفية</li>
+                        <li>يتم حفظ بياناتك محلياً في المتصفح ولا يتم رفعها إلى أي خادم</li>
+                    </ul>
+                </section>
+                
+            </aside>
+            
+            <!-- ========== MAIN CONTENT AREA ========== -->
+            <main class="content-area">
+                
+                <!-- ========== SEARCH SECTION ========== -->
+                <section class="search-section card">
+                    <div class="d-flex justify-between align-center mb-20">
+                        <h2 class="section-title"><i class="fas fa-search"></i> البحث عن عميل</h2>
+                        <button class="btn btn-secondary" id="advancedToggle">
+                            <i class="fas fa-sliders-h"></i> بحث متقدم
                         </button>
                     </div>
                     
-                    <h3><i class="fas fa-images"></i> جميع الصور المرفوعة</h3>
-                    <div class="gallery" id="adminGallery">
-                        <!-- سيتم عرض الصور هنا مع خيارات حذف إضافية -->
+                    <!-- Search Options -->
+                    <div class="d-flex gap-20 mb-20">
+                        <label class="tag">
+                            <input type="radio" name="searchType" value="all" checked>
+                            البحث في جميع الحقول
+                        </label>
+                        <label class="tag">
+                            <input type="radio" name="searchType" value="name">
+                            البحث بالاسم فقط
+                        </label>
+                        <label class="tag">
+                            <input type="radio" name="searchType" value="phone">
+                            البحث برقم الهاتف فقط
+                        </label>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="notification" id="notification"></div>
-    
-    <script>
-        // العناصر الرئيسية
-        const imageInput = document.getElementById('imageInput');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const uploadArea = document.getElementById('uploadArea');
-        const imageGallery = document.getElementById('imageGallery');
-        const adminGallery = document.getElementById('adminGallery');
-        const notification = document.getElementById('notification');
-        const searchInput = document.getElementById('searchInput');
-        const imageCount = document.getElementById('imageCount');
-        const firebaseStatus = document.getElementById('firebaseStatus');
-        const loading = document.getElementById('loading');
-        
-        // عناصر لوحة التحكم
-        const adminBtn = document.getElementById('adminBtn');
-        const adminOverlay = document.getElementById('adminOverlay');
-        const closeAdmin = document.getElementById('closeAdmin');
-        const deleteAllBtn = document.getElementById('deleteAllBtn');
-        const exportBtn = document.getElementById('exportBtn');
-        const totalImages = document.getElementById('totalImages');
-        const todayImages = document.getElementById('todayImages');
-        const firebaseStatusText = document.getElementById('firebaseStatusText');
-        
-        // بيانات التطبيق
-        let uploadedImages = [];
-        
-        // تهيئة الموقع عند التحميل
-        document.addEventListener('DOMContentLoaded', function() {
-            setupUI();
-            loadImages();
-        });
-        
-        // إعداد واجهة المستخدم
-        function setupUI() {
-            // إعداد حدث النقر على منطقة الرفع
-            uploadArea.addEventListener('click', function() {
-                imageInput.click();
-            });
-            
-            // إعداد حدث سحب وإفلات الصور
-            uploadArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                uploadArea.style.backgroundColor = '#f0f8ff';
-                uploadArea.style.borderColor = '#2ecc71';
-            });
-            
-            uploadArea.addEventListener('dragleave', function() {
-                uploadArea.style.backgroundColor = '';
-                uploadArea.style.borderColor = '#3498db';
-            });
-            
-            uploadArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                uploadArea.style.backgroundColor = '';
-                uploadArea.style.borderColor = '#3498db';
-                
-                if (e.dataTransfer.files.length) {
-                    imageInput.files = e.dataTransfer.files;
-                    handleFileSelection();
-                }
-            });
-            
-            // إعداد حدث اختيار ملف
-            imageInput.addEventListener('change', handleFileSelection);
-            
-            // إعداد حدث رفع الصورة
-            uploadBtn.addEventListener('click', uploadImage);
-            
-            // إعداد البحث
-            searchInput.addEventListener('input', searchImages);
-            
-            // إعداد أحداث لوحة التحكم
-            adminBtn.addEventListener('click', showAdminPanel);
-            closeAdmin.addEventListener('click', closeAdminPanel);
-            deleteAllBtn.addEventListener('click', deleteAllImages);
-            exportBtn.addEventListener('click', exportImagesData);
-            
-            showNotification("الموقع جاهز! يمكنك رفع الصور الآن.", "success");
-        }
-        
-        // التعامل مع اختيار الملف
-        function handleFileSelection() {
-            if (imageInput.files && imageInput.files[0]) {
-                const file = imageInput.files[0];
-                
-                // التحقق من نوع الملف وحجمه
-                const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-                const maxSize = 5 * 1024 * 1024; // 5MB
-                
-                if (!validTypes.includes(file.type)) {
-                    showNotification('يجب أن يكون الملف من نوع صورة (JPG، PNG، GIF)', 'error');
-                    resetUpload();
-                    return;
-                }
-                
-                if (file.size > maxSize) {
-                    showNotification('حجم الصورة يجب أن يكون أقل من 5MB', 'error');
-                    resetUpload();
-                    return;
-                }
-                
-                // عرض معاينة للصورة
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    uploadArea.innerHTML = `
-                        <div style="text-align: center;">
-                            <div style="font-size: 50px; color: #2ecc71; margin-bottom: 15px;">
-                                <i class="fas fa-check-circle"></i>
+                    
+                    <!-- Search Input -->
+                    <div class="search-box">
+                        <input type="text" id="searchInput" class="search-input" placeholder="أدخل اسم العميل، رقم الهاتف، الولاية...">
+                        <button class="btn btn-primary" id="searchBtn">
+                            <i class="fas fa-search"></i> بحث
+                        </button>
+                    </div>
+                    
+                    <!-- Advanced Search (Hidden by default) -->
+                    <div class="advanced-search hidden" id="advancedSearch">
+                        <h4 class="mb-20"><i class="fas fa-filter"></i> عوامل التصفية المتقدمة</h4>
+                        
+                        <div class="d-flex gap-20 mb-20">
+                            <div class="filter-group">
+                                <label class="mb-10">الولاية</label>
+                                <select class="search-input" id="filterState">
+                                    <option value="">جميع الولايات</option>
+                                </select>
                             </div>
-                            <p class="upload-text">تم اختيار الصورة بنجاح</p>
-                            <div style="max-width: 150px; margin: 0 auto; border-radius: 10px; overflow: hidden;">
-                                <img src="${e.target.result}" alt="معاينة الصورة" style="width: 100%; height: auto; display: block;">
+                            <div class="filter-group">
+                                <label class="mb-10">البلدية</label>
+                                <select class="search-input" id="filterCity">
+                                    <option value="">جميع البلديات</option>
+                                </select>
                             </div>
-                            <p class="file-info">${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</p>
                         </div>
-                    `;
-                    uploadBtn.disabled = false;
-                };
-                reader.readAsDataURL(file);
-            }
-        }
+                        
+                        <div class="d-flex gap-20 mb-20">
+                            <div class="filter-group">
+                                <label class="mb-10">من تاريخ</label>
+                                <input type="date" class="search-input" id="filterDateFrom">
+                            </div>
+                            <div class="filter-group">
+                                <label class="mb-10">إلى تاريخ</label>
+                                <input type="date" class="search-input" id="filterDateTo">
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button class="btn btn-primary" id="applyFiltersBtn">
+                                <i class="fas fa-check"></i> تطبيق الفلاتر
+                            </button>
+                            <button class="btn btn-secondary" id="resetFiltersBtn">
+                                <i class="fas fa-redo"></i> إعادة تعيين
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- ========== MULTIPLE RESULTS SECTION ========== -->
+                <section class="multiple-results card hidden" id="multipleResults">
+                    <div class="d-flex justify-between align-center mb-20">
+                        <div>
+                            <h3><i class="fas fa-users"></i> نتائج البحث المتعددة</h3>
+                            <p>تم العثور على <span id="resultsCount">0</span> نتيجة. الرجاء اختيار العميل المطلوب:</p>
+                        </div>
+                        <button class="btn btn-secondary" id="closeResultsBtn">
+                            <i class="fas fa-times"></i> إغلاق
+                        </button>
+                    </div>
+                    
+                    <div class="results-list" id="resultsList">
+                        <!-- سيتم تعبئة القائمة ديناميكياً -->
+                    </div>
+                    
+                    <div class="text-center">
+                        <button class="btn btn-primary" id="exportResultsBtn">
+                            <i class="fas fa-file-excel"></i> تصدير النتائج
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- ========== CLIENT INFO SECTION ========== -->
+                <section class="client-info card" id="clientInfo">
+                    <div class="client-header">
+                        <div class="client-avatar" id="clientAvatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="client-name" id="clientFullName">اسم العميل</h3>
+                            <p id="clientTitle">معلومات العميل</p>
+                            <div class="d-flex gap-10 mt-10" id="clientTags">
+                                <!-- سيتم إضافة الوسوم ديناميكياً -->
+                            </div>
+                        </div>
+                        <div class="d-flex gap-10">
+                            <button class="btn btn-secondary" id="printClientBtn" title="طباعة">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <button class="btn btn-secondary" id="editClientBtn" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-secondary" id="closeClientBtn" title="إغلاق">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="client-details" id="clientDetails">
+                        <!-- سيتم ملء هذه المنطقة ببيانات العميل -->
+                    </div>
+                    
+                    <div class="text-center mt-20">
+                        <button class="btn btn-secondary" id="prevClientBtn">
+                            <i class="fas fa-arrow-right"></i> السابق
+                        </button>
+                        <button class="btn btn-secondary" id="nextClientBtn">
+                            التالي <i class="fas fa-arrow-left"></i>
+                        </button>
+                    </div>
+                </section>
+                
+                <!-- ========== CHARTS SECTION ========== -->
+                <section class="charts-container" id="chartsContainer">
+                    <div class="chart-card card">
+                        <h3 class="section-title"><i class="fas fa-chart-pie"></i> توزيع العملاء حسب الولاية</h3>
+                        <canvas id="stateChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-card card">
+                        <h3 class="section-title"><i class="fas fa-chart-bar"></i> إحصاءات البيانات</h3>
+                        <canvas id="statsChart"></canvas>
+                    </div>
+                </section>
+                
+                <!-- ========== DATA TABLE SECTION ========== -->
+                <section class="data-table-section card">
+                    <div class="d-flex justify-between align-center mb-20">
+                        <h2 class="section-title"><i class="fas fa-table"></i> معاينة البيانات</h2>
+                        <div class="d-flex gap-10">
+                            <button class="btn btn-secondary" id="exportTableBtn" title="تصدير الجدول">
+                                <i class="fas fa-file-export"></i>
+                            </button>
+                            <button class="btn btn-secondary" id="toggleTableViewBtn" title="تبديل العرض">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table" id="dataTable">
+                            <thead>
+                                <tr>
+                                    <!-- سيتم ملء رؤوس الجدول ديناميكيًا -->
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- سيتم ملء بيانات الجدول ديناميكيًا -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="text-center mt-20">
+                        <button class="btn btn-secondary" id="prevPageBtn">
+                            <i class="fas fa-arrow-right"></i> الصفحة السابقة
+                        </button>
+                        <span id="pageInfo">الصفحة 1 من 1</span>
+                        <button class="btn btn-secondary" id="nextPageBtn">
+                            الصفحة التالية <i class="fas fa-arrow-left"></i>
+                        </button>
+                    </div>
+                </section>
+                
+            </main>
+        </div>
         
-        // رفع الصورة
-        function uploadImage() {
-            if (!imageInput.files || !imageInput.files[0]) {
-                showNotification('يرجى اختيار صورة أولاً', 'error');
-                return;
-            }
+        <!-- ========== FOOTER ========== -->
+        <footer class="text-center" style="padding: 25px; color: #666; border-top: 1px solid #eee;">
+            <p>© 2023 نظام إدارة بيانات العملاء المتقدم. جميع الحقوق محفوظة.</p>
+            <p class="mt-20">تم التطوير باستخدام JavaScript و SheetJS و Chart.js</p>
+        </footer>
+    </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // ==================== MODULE PATTERN ====================
+        const CustomerDataSystem = (function() {
             
-            const file = imageInput.files[0];
-            showLoading(true);
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const imageData = {
-                    id: Date.now().toString(),
-                    imageUrl: e.target.result,
-                    name: file.name,
-                    size: file.size,
-                    uploadTime: new Date().toLocaleString('ar-SA'),
-                    uploadDate: new Date().toISOString().split('T')[0],
-                    uploadTimestamp: new Date().toISOString()
-                };
-                
-                // إضافة الصورة إلى المصفوفة
-                uploadedImages.unshift(imageData);
-                
-                // حفظ في التخزين المحلي
-                saveImages();
-                
-                // تحديث العرض
-                displayImages();
-                updateImageCount();
-                
-                // إعادة تعيين واجهة الرفع
-                resetUpload();
-                
-                // إظهار إشعار النجاح
-                showNotification('تم رفع الصورة بنجاح!', 'success');
-                
-                showLoading(false);
+            // ========== PRIVATE VARIABLES ==========
+            let fileData = [];
+            let columns = [];
+            let currentSearchResults = [];
+            let currentClientIndex = 0;
+            let currentPage = 1;
+            const itemsPerPage = 10;
+            let totalPages = 1;
+            let stats = {
+                uploads: 0,
+                searches: 0,
+                lastUpload: null
             };
             
-            reader.readAsDataURL(file);
-        }
-        
-        // حفظ الصور في التخزين المحلي
-        function saveImages() {
-            localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
-        }
-        
-        // تحميل الصور من التخزين المحلي
-        function loadImages() {
-            const savedImages = localStorage.getItem('uploadedImages');
-            if (savedImages) {
-                uploadedImages = JSON.parse(savedImages);
-                displayImages();
-                updateImageCount();
-            } else {
-                // إضافة صور افتراضية للمرة الأولى
-                addDefaultImages();
-            }
-        }
-        
-        // عرض الصور في المعرض
-        function displayImages() {
-            if (uploadedImages.length === 0) {
-                imageGallery.innerHTML = `
-                    <div class="empty-gallery">
-                        <i class="far fa-images"></i>
-                        <p>لا توجد صور مرفوعة بعد. كن أول من يرفع صورة!</p>
-                    </div>
-                `;
-                return;
+            // Chart instances
+            let stateChart = null;
+            let statsChart = null;
+            
+            // DOM Elements cache
+            const elements = {};
+            
+            // ========== INITIALIZATION ==========
+            function init() {
+                cacheDOMElements();
+                loadStats();
+                updateStatsDisplay();
+                setupEventListeners();
+                loadSavedData();
+                hideCharts();
+                showNotification('مرحباً بك في نظام إدارة بيانات العملاء المتقدم!', 'info');
             }
             
-            imageGallery.innerHTML = '';
-            
-            uploadedImages.forEach(image => {
-                const imageCard = createImageCard(image, false);
-                imageGallery.appendChild(imageCard);
-            });
-        }
-        
-        // إنشاء بطاقة صورة
-        function createImageCard(image, isAdminView = false) {
-            const imageCard = document.createElement('div');
-            imageCard.className = 'image-card';
-            imageCard.setAttribute('data-id', image.id);
-            imageCard.setAttribute('data-name', image.name.toLowerCase());
-            
-            const deleteBtn = `<button class="delete-btn" onclick="deleteImage('${image.id}', ${isAdminView})" title="حذف الصورة">
-                    <i class="fas fa-trash"></i>
-                </button>`;
-            
-            imageCard.innerHTML = `
-                <img src="${image.imageUrl}" alt="${image.name}" loading="lazy">
-                <div class="image-actions">
-                    ${deleteBtn}
-                </div>
-                <div class="image-info">
-                    <div style="font-size: 0.9rem; color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        ${image.name}
-                    </div>
-                    <div class="image-time">${image.uploadTime}</div>
-                </div>
-            `;
-            
-            return imageCard;
-        }
-        
-        // حذف صورة
-        function deleteImage(id, fromAdmin = false) {
-            if (!confirm('هل أنت متأكد من حذف هذه الصورة؟')) {
-                return;
+            function cacheDOMElements() {
+                // File upload elements
+                elements.fileInput = document.getElementById('fileInput');
+                elements.uploadArea = document.getElementById('uploadArea');
+                elements.browseBtn = document.getElementById('browseBtn');
+                elements.fileInfo = document.getElementById('fileInfo');
+                elements.fileName = document.getElementById('fileName');
+                elements.recordCount = document.getElementById('recordCount');
+                elements.columnsList = document.getElementById('columnsList');
+                elements.uploadDate = document.getElementById('uploadDate');
+                
+                // Search elements
+                elements.searchInput = document.getElementById('searchInput');
+                elements.searchBtn = document.getElementById('searchBtn');
+                elements.advancedSearch = document.getElementById('advancedSearch');
+                elements.advancedToggle = document.getElementById('advancedToggle');
+                
+                // Client info elements
+                elements.clientInfo = document.getElementById('clientInfo');
+                elements.clientAvatar = document.getElementById('clientAvatar');
+                elements.clientFullName = document.getElementById('clientFullName');
+                elements.clientTitle = document.getElementById('clientTitle');
+                elements.clientDetails = document.getElementById('clientDetails');
+                elements.clientTags = document.getElementById('clientTags');
+                
+                // Results elements
+                elements.multipleResults = document.getElementById('multipleResults');
+                elements.resultsList = document.getElementById('resultsList');
+                elements.resultsCount = document.getElementById('resultsCount');
+                
+                // Table elements
+                elements.dataTable = document.getElementById('dataTable');
+                elements.tableHead = elements.dataTable.querySelector('thead tr');
+                elements.tableBody = elements.dataTable.querySelector('tbody');
+                elements.pageInfo = document.getElementById('pageInfo');
+                
+                // Stats elements
+                elements.totalClients = document.getElementById('totalClients');
+                elements.totalColumns = document.getElementById('totalColumns');
+                elements.lastUpdate = document.getElementById('lastUpdate');
+                elements.statClients = document.getElementById('statClients');
+                elements.statUploads = document.getElementById('statUploads');
+                elements.statSearches = document.getElementById('statSearches');
+                
+                // Charts container
+                elements.chartsContainer = document.getElementById('chartsContainer');
+                
+                // Action buttons
+                elements.clearDataBtn = document.getElementById('clearDataBtn');
+                elements.exportDataBtn = document.getElementById('exportDataBtn');
+                elements.exportResultsBtn = document.getElementById('exportResultsBtn');
+                elements.exportTableBtn = document.getElementById('exportTableBtn');
+                elements.printClientBtn = document.getElementById('printClientBtn');
+                elements.editClientBtn = document.getElementById('editClientBtn');
+                elements.prevClientBtn = document.getElementById('prevClientBtn');
+                elements.nextClientBtn = document.getElementById('nextClientBtn');
+                elements.prevPageBtn = document.getElementById('prevPageBtn');
+                elements.nextPageBtn = document.getElementById('nextPageBtn');
+                elements.toggleTableViewBtn = document.getElementById('toggleTableViewBtn');
+                elements.closeResultsBtn = document.getElementById('closeResultsBtn');
+                elements.closeClientBtn = document.getElementById('closeClientBtn');
+                elements.applyFiltersBtn = document.getElementById('applyFiltersBtn');
+                elements.resetFiltersBtn = document.getElementById('resetFiltersBtn');
             }
             
-            uploadedImages = uploadedImages.filter(image => image.id !== id);
-            saveImages();
-            displayImages();
-            updateImageCount();
-            
-            if (fromAdmin) {
-                updateAdminPanel();
+            // ========== EVENT HANDLERS ==========
+            function setupEventListeners() {
+                // File upload events
+                elements.browseBtn.addEventListener('click', () => elements.fileInput.click());
+                elements.uploadArea.addEventListener('click', () => elements.fileInput.click());
+                
+                // Drag and drop events
+                setupDragAndDrop();
+                
+                // File input change
+                elements.fileInput.addEventListener('change', handleFileInputChange);
+                
+                // Search events
+                elements.searchBtn.addEventListener('click', searchClient);
+                elements.searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') searchClient();
+                });
+                
+                // Search type events
+                setupSearchTypeEvents();
+                
+                // Button events
+                setupButtonEvents();
+                
+                // Advanced search events
+                setupAdvancedSearchEvents();
             }
             
-            showNotification('تم حذف الصورة بنجاح', 'success');
-        }
-        
-        // حذف جميع الصور
-        function deleteAllImages() {
-            if (uploadedImages.length === 0) {
-                showNotification('لا توجد صور لحذفها', 'warning');
-                return;
+            function setupDragAndDrop() {
+                elements.uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    elements.uploadArea.style.borderColor = '#f72585';
+                    elements.uploadArea.style.backgroundColor = '#e8f4ff';
+                });
+                
+                elements.uploadArea.addEventListener('dragleave', () => {
+                    elements.uploadArea.style.borderColor = '#4361ee';
+                    elements.uploadArea.style.backgroundColor = '#f8fbff';
+                });
+                
+                elements.uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    elements.uploadArea.style.borderColor = '#4361ee';
+                    elements.uploadArea.style.backgroundColor = '#f8fbff';
+                    
+                    if (e.dataTransfer.files.length) {
+                        elements.fileInput.files = e.dataTransfer.files;
+                        handleFileUpload(e.dataTransfer.files[0]);
+                    }
+                });
             }
             
-            if (!confirm('هل أنت متأكد من حذف جميع الصور؟ لا يمكن التراجع عن هذا الإجراء!')) {
-                return;
+            function setupSearchTypeEvents() {
+                document.querySelectorAll('input[name="searchType"]').forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        // Update active state visually
+                        document.querySelectorAll('.tag').forEach(tag => {
+                            tag.style.background = '#f0f7ff';
+                        });
+                        this.parentElement.style.background = '#4361ee';
+                        this.parentElement.style.color = 'white';
+                    });
+                });
             }
             
-            uploadedImages = [];
-            saveImages();
-            displayImages();
-            updateImageCount();
-            updateAdminPanel();
-            
-            showNotification('تم حذف جميع الصور بنجاح', 'success');
-            closeAdminPanel();
-        }
-        
-        // تصدير بيانات الصور
-        function exportImagesData() {
-            if (uploadedImages.length === 0) {
-                showNotification('لا توجد صور لتصديرها', 'warning');
-                return;
+            function setupButtonEvents() {
+                // Navigation buttons
+                elements.advancedToggle.addEventListener('click', toggleAdvancedSearch);
+                elements.closeResultsBtn.addEventListener('click', () => elements.multipleResults.classList.add('hidden'));
+                elements.closeClientBtn.addEventListener('click', () => elements.clientInfo.classList.remove('active'));
+                
+                // Data management buttons
+                elements.clearDataBtn.addEventListener('click', clearAllData);
+                elements.exportDataBtn.addEventListener('click', exportAllData);
+                elements.exportResultsBtn.addEventListener('click', exportResults);
+                elements.exportTableBtn.addEventListener('click', exportTableData);
+                
+                // Client navigation buttons
+                elements.printClientBtn.addEventListener('click', printClientInfo);
+                elements.editClientBtn.addEventListener('click', editClientInfo);
+                elements.prevClientBtn.addEventListener('click', showPrevClient);
+                elements.nextClientBtn.addEventListener('click', showNextClient);
+                
+                // Table navigation buttons
+                elements.prevPageBtn.addEventListener('click', goToPrevPage);
+                elements.nextPageBtn.addEventListener('click', goToNextPage);
+                elements.toggleTableViewBtn.addEventListener('click', toggleTableView);
             }
             
-            const dataStr = JSON.stringify(uploadedImages, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            const url = URL.createObjectURL(dataBlob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `images-data-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            
-            showNotification('تم تصدير بيانات الصور بنجاح', 'success');
-        }
-        
-        // البحث في الصور
-        function searchImages() {
-            const searchTerm = searchInput.value.toLowerCase().trim();
-            
-            if (searchTerm === '') {
-                displayImages();
-                return;
+            function setupAdvancedSearchEvents() {
+                elements.applyFiltersBtn.addEventListener('click', applyAdvancedFilters);
+                elements.resetFiltersBtn.addEventListener('click', resetAdvancedFilters);
             }
             
-            const filteredImages = uploadedImages.filter(image => 
-                image.name.toLowerCase().includes(searchTerm)
-            );
-            
-            if (filteredImages.length === 0) {
-                imageGallery.innerHTML = `
-                    <div class="empty-gallery">
-                        <i class="fas fa-search"></i>
-                        <p>لا توجد نتائج لـ "${searchTerm}"</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            imageGallery.innerHTML = '';
-            filteredImages.forEach(image => {
-                const imageCard = createImageCard(image, false);
-                imageGallery.appendChild(imageCard);
-            });
-        }
-        
-        // تحديث عداد الصور
-        function updateImageCount() {
-            imageCount.textContent = `${uploadedImages.length} صورة`;
-        }
-        
-        // إعادة تعيين واجهة الرفع
-        function resetUpload() {
-            imageInput.value = '';
-            uploadBtn.disabled = true;
-            uploadArea.innerHTML = `
-                <div class="upload-icon">
-                    <i class="fas fa-file-image"></i>
-                </div>
-                <p class="upload-text">انقر لاختيار صورة أو اسحبها وأفلتها هنا</p>
-                <p class="file-info">يدعم الموقع الصور بصيغ JPG، PNG، GIF (بحد أقصى 5MB)</p>
-            `;
-        }
-        
-        // عرض لوحة تحكم المسؤول
-        function showAdminPanel() {
-            updateAdminPanel();
-            adminOverlay.style.display = 'flex';
-        }
-        
-        // إغلاق لوحة تحكم المسؤول
-        function closeAdminPanel() {
-            adminOverlay.style.display = 'none';
-        }
-        
-        // تحديث لوحة تحكم المسؤول
-        function updateAdminPanel() {
-            // تحديث الإحصائيات
-            totalImages.textContent = uploadedImages.length;
-            
-            // حساب الصور المرفوعة اليوم
-            const today = new Date().toISOString().split('T')[0];
-            const todayCount = uploadedImages.filter(image => image.uploadDate === today).length;
-            todayImages.textContent = todayCount;
-            
-            // عرض جميع الصور في لوحة التحكم
-            adminGallery.innerHTML = '';
-            
-            if (uploadedImages.length === 0) {
-                adminGallery.innerHTML = `
-                    <div class="empty-gallery">
-                        <i class="far fa-images"></i>
-                        <p>لا توجد صور مرفوعة بعد</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            uploadedImages.forEach(image => {
-                const imageCard = createImageCard(image, true);
-                adminGallery.appendChild(imageCard);
-            });
-        }
-        
-        // إظهار/إخفاء شاشة التحميل
-        function showLoading(show) {
-            if (show) {
-                loading.classList.add('show');
-            } else {
-                loading.classList.remove('show');
-            }
-        }
-        
-        // عرض الإشعارات
-        function showNotification(message, type) {
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-        
-        // إضافة صور افتراضية
-        function addDefaultImages() {
-            const defaultImages = [
-                {
-                    id: '1',
-                    imageUrl: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80',
-                    name: 'منظر طبيعي',
-                    size: 2048000,
-                    uploadTime: new Date().toLocaleString('ar-SA'),
-                    uploadDate: new Date().toISOString().split('T')[0]
-                },
-                {
-                    id: '2',
-                    imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80',
-                    name: 'السماء ليلاً',
-                    size: 1856000,
-                    uploadTime: new Date().toLocaleString('ar-SA'),
-                    uploadDate: new Date().toISOString().split('T')[0]
-                },
-                {
-                    id: '3',
-                    imageUrl: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=300&q=80',
-                    name: 'شاطئ البحر',
-                    size: 2560000,
-                    uploadTime: new Date().toLocaleString('ar-SA'),
-                    uploadDate: new Date().toISOString().split('T')[0]
+            // ========== FILE UPLOAD FUNCTIONS ==========
+            function handleFileInputChange(e) {
+                if (e.target.files.length) {
+                    handleFileUpload(e.target.files[0]);
                 }
-            ];
+            }
             
-            uploadedImages = defaultImages;
-            saveImages();
-            displayImages();
-            updateImageCount();
-        }
+            function handleFileUpload(file) {
+                // Validate file type
+                if (!isValidFileType(file)) {
+                    showNotification('نوع الملف غير مدعوم. يرجى رفع ملف Excel (xlsx, xls) أو ملف CSV.', 'error');
+                    return;
+                }
+                
+                // Show loading state
+                showLoadingState();
+                
+                // Read file
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        processFileData(e.target.result, file);
+                    } catch (error) {
+                        handleFileError(error);
+                    }
+                };
+                
+                reader.onerror = function() {
+                    showNotification('حدث خطأ في قراءة الملف.', 'error');
+                    resetUploadArea();
+                };
+                
+                reader.readAsArrayBuffer(file);
+            }
+            
+            function isValidFileType(file) {
+                const validTypes = [
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/vnd.ms-excel',
+                    'text/csv'
+                ];
+                
+                return validTypes.includes(file.type) || file.name.match(/\.(xlsx|xls|csv)$/);
+            }
+            
+            function showLoadingState() {
+                elements.uploadArea.innerHTML = '<div class="loading-spinner"></div><p>جاري تحميل الملف...</p>';
+            }
+            
+            function processFileData(result, file) {
+                const data = new Uint8Array(result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                
+                if (jsonData.length === 0) {
+                    throw new Error('الملف فارغ');
+                }
+                
+                extractDataFromJson(jsonData);
+                saveDataToLocalStorage();
+                updateStatsAfterUpload();
+                displayFileInfo(file);
+                displayDataTable();
+                updateDashboard();
+                createCharts();
+                populateFilters();
+                
+                showNotification(`تم تحميل الملف بنجاح! تم تحميل ${fileData.length} سجل.`, 'success');
+            }
+            
+            function extractDataFromJson(jsonData) {
+                columns = jsonData[0].map(col => col ? col.toString().trim() : '');
+                
+                // Validate name column exists
+                validateNameColumn();
+                
+                // Convert to objects
+                fileData = [];
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (row.length === 0 || row.every(cell => cell === '' || cell === null)) continue;
+                    
+                    const rowObj = {};
+                    columns.forEach((col, index) => {
+                        rowObj[col] = row[index] || '';
+                    });
+                    fileData.push(rowObj);
+                }
+            }
+            
+            function validateNameColumn() {
+                const nameColumns = ['الاسم', 'اسم', 'اسم العميل', 'العميل', 'name', 'client name', 'الاسم الكامل', 'full name'];
+                const hasNameColumn = columns.some(col => nameColumns.includes(col));
+                
+                if (!hasNameColumn) {
+                    throw new Error('الملف لا يحتوي على عمود "الاسم"');
+                }
+            }
+            
+            function handleFileError(error) {
+                console.error('خطأ في قراءة الملف:', error);
+                const message = error.message === 'الملف فارغ' 
+                    ? 'الملف فارغ أو لا يحتوي على بيانات.' 
+                    : 'حدث خطأ في قراءة الملف. تأكد من صحة تنسيق الملف.';
+                showNotification(message, 'error');
+                resetUploadArea();
+            }
+            
+            function updateStatsAfterUpload() {
+                stats.uploads++;
+                stats.lastUpload = new Date().toLocaleString('ar-EG');
+                saveStats();
+            }
+            
+            function displayFileInfo(file) {
+                elements.fileName.textContent = file.name;
+                elements.recordCount.textContent = fileData.length;
+                elements.columnsList.textContent = columns.join('، ');
+                elements.uploadDate.textContent = new Date().toLocaleString('ar-EG');
+                elements.fileInfo.classList.remove('hidden');
+                resetUploadArea();
+            }
+            
+            function resetUploadArea() {
+                elements.uploadArea.innerHTML = `
+                    <div class="upload-icon">
+                        <i class="fas fa-file-excel"></i>
+                    </div>
+                    <div class="mb-20">
+                        <strong>اسحب وأفلت ملف Excel هنا</strong>
+                        <p class="mt-20">أو انقر للاختيار من الجهاز</p>
+                    </div>
+                    <p class="mb-20">الملفات المدعومة: .xlsx, .xls, .csv</p>
+                    <button class="btn btn-primary" id="browseBtn">
+                        <i class="fas fa-folder-open"></i> اختر ملف Excel
+                    </button>
+                `;
+                
+                // Re-attach event listener
+                document.getElementById('browseBtn').addEventListener('click', () => elements.fileInput.click());
+            }
+            
+            // ========== SEARCH FUNCTIONS ==========
+            function searchClient() {
+                const searchTerm = elements.searchInput.value.trim();
+                
+                if (!searchTerm && !isAdvancedSearchActive()) {
+                    showNotification('يرجى إدخال مصطلح للبحث.', 'warning');
+                    return;
+                }
+                
+                if (fileData.length === 0) {
+                    showNotification('لم يتم رفع أي ملف بعد. يرجى رفع ملف Excel أولاً.', 'warning');
+                    return;
+                }
+                
+                updateSearchStats();
+                
+                const searchType = document.querySelector('input[name="searchType"]:checked').value;
+                let foundClients = [];
+                
+                if (isAdvancedSearchActive()) {
+                    foundClients = applyAdvancedFilters(true);
+                } else {
+                    foundClients = performSearch(searchTerm, searchType);
+                }
+                
+                handleSearchResults(foundClients);
+            }
+            
+            function performSearch(searchTerm, searchType) {
+                switch(searchType) {
+                    case 'name':
+                        return searchByName(searchTerm);
+                    case 'phone':
+                        return searchByPhone(searchTerm);
+                    default:
+                        return searchInAllFields(searchTerm);
+                }
+            }
+            
+            function searchByName(searchTerm) {
+                const searchLower = searchTerm.toLowerCase();
+                const nameColumn = findNameColumn();
+                
+                return fileData.filter(client => {
+                    const clientName = String(client[nameColumn] || '').toLowerCase();
+                    return clientName.includes(searchLower);
+                });
+            }
+            
+            function searchByPhone(searchTerm) {
+                const searchClean = searchTerm.replace(/\D/g, '');
+                const phoneColumn = findPhoneColumn();
+                
+                if (!phoneColumn) {
+                    return searchInAllFields(searchTerm);
+                }
+                
+                return fileData.filter(client => {
+                    const clientPhone = String(client[phoneColumn] || '').replace(/\D/g, '');
+                    return clientPhone.includes(searchClean);
+                });
+            }
+            
+            function searchInAllFields(searchTerm) {
+                const searchLower = searchTerm.toLowerCase();
+                const searchClean = searchTerm.replace(/\D/g, '');
+                
+                return fileData.filter(client => {
+                    for (const key in client) {
+                        const value = String(client[key] || '').toLowerCase();
+                        const valueClean = String(client[key] || '').replace(/\D/g, '');
+                        
+                        if (searchLower.length > 0 && value.includes(searchLower)) {
+                            return true;
+                        }
+                        
+                        if (searchClean.length > 0 && valueClean.includes(searchClean)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+            }
+            
+            function findNameColumn() {
+                const nameColumns = ['الاسم', 'اسم', 'اسم العميل', 'العميل', 'name', 'client name', 'الاسم الكامل'];
+                return columns.find(col => nameColumns.includes(col)) || columns[0];
+            }
+            
+            function findPhoneColumn() {
+                const phoneColumns = ['رقم الهاتف', 'الهاتف', 'رقم الجوال', 'الجوال', 'phone', 'mobile', 'telephone', 'contact'];
+                return columns.find(col => phoneColumns.includes(col));
+            }
+            
+            function handleSearchResults(foundClients) {
+                if (foundClients.length === 0) {
+                    elements.clientInfo.classList.remove('active');
+                    elements.multipleResults.classList.add('hidden');
+                    showNotification('لم يتم العثور على عملاء يطابقون معايير البحث.', 'warning');
+                } else if (foundClients.length === 1) {
+                    displayClientInfo(foundClients[0]);
+                    elements.multipleResults.classList.add('hidden');
+                    currentSearchResults = foundClients;
+                    currentClientIndex = 0;
+                } else {
+                    showMultipleResults(foundClients);
+                    elements.clientInfo.classList.remove('active');
+                }
+            }
+            
+            function updateSearchStats() {
+                stats.searches++;
+                saveStats();
+                updateStatsDisplay();
+            }
+            
+            // ========== ADVANCED SEARCH FUNCTIONS ==========
+            function isAdvancedSearchActive() {
+                const stateFilter = document.getElementById('filterState').value;
+                const cityFilter = document.getElementById('filterCity').value;
+                const dateFrom = document.getElementById('filterDateFrom').value;
+                const dateTo = document.getElementById('filterDateTo').value;
+                
+                return stateFilter || cityFilter || dateFrom || dateTo;
+            }
+            
+            function applyAdvancedFilters(fromSearch = false) {
+                const stateFilter = document.getElementById('filterState').value;
+                const cityFilter = document.getElementById('filterCity').value;
+                const dateFrom = document.getElementById('filterDateFrom').value;
+                const dateTo = document.getElementById('filterDateTo').value;
+                
+                let filteredClients = fileData;
+                
+                // Filter by state
+                if (stateFilter) {
+                    const stateColumn = findStateColumn();
+                    if (stateColumn) {
+                        filteredClients = filteredClients.filter(client => 
+                            String(client[stateColumn] || '').toLowerCase() === stateFilter.toLowerCase()
+                        );
+                    }
+                }
+                
+                // Filter by city
+                if (cityFilter) {
+                    const cityColumn = findCityColumn();
+                    if (cityColumn) {
+                        filteredClients = filteredClients.filter(client => 
+                            String(client[cityColumn] || '').toLowerCase() === cityFilter.toLowerCase()
+                        );
+                    }
+                }
+                
+                // Filter by date
+                filteredClients = filterByDate(filteredClients, dateFrom, dateTo);
+                
+                if (!fromSearch) {
+                    if (filteredClients.length === 0) {
+                        showNotification('لم يتم العثور على عملاء يطابقون معايير التصفية.', 'warning');
+                    } else {
+                        showMultipleResults(filteredClients);
+                        showNotification(`تم العثور على ${filteredClients.length} عميل يطابق معايير البحث.`, 'success');
+                    }
+                }
+                
+                return filteredClients;
+            }
+            
+            function findStateColumn() {
+                return columns.find(col => ['الولاية', 'state', 'المحافظة'].includes(col));
+            }
+            
+            function findCityColumn() {
+                return columns.find(col => ['البلدية', 'city', 'المدينة'].includes(col));
+            }
+            
+            function filterByDate(clients, dateFrom, dateTo) {
+                const dateColumn = findDateColumn();
+                
+                if (!dateColumn || (!dateFrom && !dateTo)) {
+                    return clients;
+                }
+                
+                return clients.filter(client => {
+                    const clientDate = new Date(client[dateColumn]);
+                    if (isNaN(clientDate.getTime())) return true;
+                    
+                    let fromCondition = true;
+                    let toCondition = true;
+                    
+                    if (dateFrom) {
+                        const fromDate = new Date(dateFrom);
+                        fromCondition = clientDate >= fromDate;
+                    }
+                    
+                    if (dateTo) {
+                        const toDate = new Date(dateTo);
+                        toDate.setHours(23, 59, 59, 999);
+                        toCondition = clientDate <= toDate;
+                    }
+                    
+                    return fromCondition && toCondition;
+                });
+            }
+            
+            function findDateColumn() {
+                const dateColumns = ['التاريخ', 'تاريخ', 'date', 'تاريخ الإضافة'];
+                return columns.find(col => dateColumns.includes(col));
+            }
+            
+            function resetAdvancedFilters() {
+                document.getElementById('filterState').value = '';
+                document.getElementById('filterCity').value = '';
+                document.getElementById('filterDateFrom').value = '';
+                document.getElementById('filterDateTo').value = '';
+            }
+            
+            function toggleAdvancedSearch() {
+                elements.advancedSearch.classList.toggle('hidden');
+                if (elements.advancedSearch.classList.contains('hidden')) {
+                    elements.advancedToggle.innerHTML = '<i class="fas fa-sliders-h"></i> بحث متقدم';
+                } else {
+                    elements.advancedToggle.innerHTML = '<i class="fas fa-times"></i> إغلاق البحث المتقدم';
+                }
+            }
+            
+            function populateFilters() {
+                const stateFilter = document.getElementById('filterState');
+                const cityFilter = document.getElementById('filterCity');
+                
+                stateFilter.innerHTML = '<option value="">جميع الولايات</option>';
+                cityFilter.innerHTML = '<option value="">جميع البلديات</option>';
+                
+                const states = new Set();
+                const cities = new Set();
+                
+                const stateColumn = findStateColumn();
+                const cityColumn = findCityColumn();
+                
+                fileData.forEach(client => {
+                    if (stateColumn && client[stateColumn]) {
+                        states.add(client[stateColumn]);
+                    }
+                    if (cityColumn && client[cityColumn]) {
+                        cities.add(client[cityColumn]);
+                    }
+                });
+                
+                states.forEach(state => {
+                    const option = document.createElement('option');
+                    option.value = state;
+                    option.textContent = state;
+                    stateFilter.appendChild(option);
+                });
+                
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    cityFilter.appendChild(option);
+                });
+            }
+            
+            // ========== CLIENT DISPLAY FUNCTIONS ==========
+            function showMultipleResults(clients) {
+                currentSearchResults = clients;
+                elements.resultsCount.textContent = clients.length;
+                elements.resultsList.innerHTML = '';
+                
+                clients.forEach((client, index) => {
+                    const resultItem = createResultItem(client, index);
+                    elements.resultsList.appendChild(resultItem);
+                });
+                
+                elements.multipleResults.classList.remove('hidden');
+                
+                if (clients.length === 1) {
+                    elements.resultsList.children[0].click();
+                }
+            }
+            
+            function createResultItem(client, index) {
+                const nameColumn = findNameColumn();
+                const phoneColumn = findPhoneColumn();
+                const stateColumn = findStateColumn();
+                const cityColumn = findCityColumn();
+                
+                const name = client[nameColumn] || 'غير معروف';
+                const phone = phoneColumn ? (client[phoneColumn] || 'غير معروف') : 'غير متوفر';
+                const state = stateColumn ? (client[stateColumn] || '') : '';
+                const city = cityColumn ? (client[cityColumn] || '') : '';
+                
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.dataset.index = index;
+                
+                resultItem.innerHTML = `
+                    <div>
+                        <div style="font-weight: bold;">${name}</div>
+                        <div>${state} ${city ? ' - ' + city : ''}</div>
+                    </div>
+                    <div>${phone}</div>
+                `;
+                
+                resultItem.addEventListener('click', () => {
+                    document.querySelectorAll('.result-item').forEach(item => {
+                        item.style.background = '#f8f9fa';
+                        item.style.borderColor = 'transparent';
+                    });
+                    
+                    resultItem.style.background = 'white';
+                    resultItem.style.borderColor = '#4361ee';
+                    
+                    currentClientIndex = index;
+                    displayClientInfo(client);
+                    elements.multipleResults.classList.add('hidden');
+                });
+                
+                return resultItem;
+            }
+            
+            function displayClientInfo(client) {
+                const nameColumn = findNameColumn();
+                const phoneColumn = findPhoneColumn();
+                const emailColumn = findEmailColumn();
+                
+                const fullName = client[nameColumn] || 'غير معروف';
+                const phone = phoneColumn ? (client[phoneColumn] || 'غير معروف') : 'غير متوفر';
+                const email = emailColumn ? (client[emailColumn] || 'غير متوفر') : 'غير متوفر';
+                
+                elements.clientFullName.textContent = fullName;
+                elements.clientTitle.textContent = `رقم الهاتف: ${phone} | البريد: ${email}`;
+                
+                updateClientAvatar(fullName);
+                updateClientTags(client);
+                displayClientDetails(client);
+                
+                elements.clientInfo.classList.add('active');
+            }
+            
+            function findEmailColumn() {
+                const emailColumns = ['البريد الإلكتروني', 'البريد', 'الإيميل', 'email'];
+                return columns.find(col => emailColumns.includes(col));
+            }
+            
+            function updateClientAvatar(fullName) {
+                const colors = ['#4361ee', '#7209b7', '#f72585', '#4cc9f0', '#f8961e', '#f94144'];
+                const colorIndex = fullName.length % colors.length;
+                elements.clientAvatar.style.background = `linear-gradient(135deg, ${colors[colorIndex]}, ${colors[(colorIndex + 2) % colors.length]})`;
+                
+                const initials = fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                elements.clientAvatar.innerHTML = initials || '<i class="fas fa-user"></i>';
+            }
+            
+            function updateClientTags(client) {
+                elements.clientTags.innerHTML = '';
+                
+                const stateColumn = findStateColumn();
+                const cityColumn = findCityColumn();
+                const businessColumn = findBusinessColumn();
+                
+                if (stateColumn && client[stateColumn]) {
+                    elements.clientTags.innerHTML += `<span class="tag">${client[stateColumn]}</span>`;
+                }
+                
+                if (cityColumn && client[cityColumn]) {
+                    elements.clientTags.innerHTML += `<span class="tag">${client[cityColumn]}</span>`;
+                }
+                
+                if (businessColumn && client[businessColumn]) {
+                    elements.clientTags.innerHTML += `<span class="tag">${client[businessColumn]}</span>`;
+                }
+            }
+            
+            function findBusinessColumn() {
+                const businessColumns = ['النشاط', 'المهنة', 'العمل', 'business', 'job'];
+                return columns.find(col => businessColumns.includes(col));
+            }
+            
+            function displayClientDetails(client) {
+                elements.clientDetails.innerHTML = '';
+                
+                const importantColumns = [
+                    'الاسم', 'اسم', 'اسم العميل', 'اللقب', 'الولاية', 'البلدية', 
+                    'رقم الهاتف', 'الهاتف', 'رقم الجوال', 'الجوال', 'العنوان', 
+                    'البريد الإلكتروني', 'email', 'العمر', 'المهنة'
+                ];
+                
+                importantColumns.forEach(colName => {
+                    if (columns.includes(colName) && client[colName]) {
+                        addClientDetail(colName, client[colName]);
+                    }
+                });
+                
+                columns.forEach(col => {
+                    if (!importantColumns.includes(col) && client[col]) {
+                        addClientDetail(col, client[col]);
+                    }
+                });
+            }
+            
+            function addClientDetail(label, value) {
+                const detailItem = document.createElement('div');
+                detailItem.style.marginBottom = '20px';
+                
+                detailItem.innerHTML = `
+                    <div style="font-weight: bold; color: #4361ee; margin-bottom: 8px;">${label}</div>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 10px; border: 1px solid #e9ecef;">
+                        ${value || 'غير محدد'}
+                    </div>
+                `;
+                
+                elements.clientDetails.appendChild(detailItem);
+            }
+            
+            function showPrevClient() {
+                if (currentSearchResults.length === 0) return;
+                currentClientIndex = (currentClientIndex - 1 + currentSearchResults.length) % currentSearchResults.length;
+                displayClientInfo(currentSearchResults[currentClientIndex]);
+            }
+            
+            function showNextClient() {
+                if (currentSearchResults.length === 0) return;
+                currentClientIndex = (currentClientIndex + 1) % currentSearchResults.length;
+                displayClientInfo(currentSearchResults[currentClientIndex]);
+            }
+            
+            // ========== TABLE FUNCTIONS ==========
+            function displayDataTable(page = 1) {
+                elements.tableHead.innerHTML = '';
+                elements.tableBody.innerHTML = '';
+                
+                if (fileData.length === 0) {
+                    elements.pageInfo.textContent = 'لا توجد بيانات لعرضها';
+                    return;
+                }
+                
+                currentPage = page;
+                totalPages = Math.ceil(fileData.length / itemsPerPage);
+                const startIndex = (page - 1) * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, fileData.length);
+                const pageData = fileData.slice(startIndex, endIndex);
+                
+                const displayColumns = columns.slice(0, 10);
+                displayColumns.forEach(col => {
+                    const th = document.createElement('th');
+                    th.textContent = col;
+                    elements.tableHead.appendChild(th);
+                });
+                
+                pageData.forEach(row => {
+                    const tr = document.createElement('tr');
+                    
+                    displayColumns.forEach(col => {
+                        const td = document.createElement('td');
+                        td.textContent = row[col] || '';
+                        td.style.padding = '12px 15px';
+                        td.style.borderBottom = '1px solid #ddd';
+                        tr.appendChild(td);
+                    });
+                    
+                    elements.tableBody.appendChild(tr);
+                });
+                
+                elements.pageInfo.textContent = `الصفحة ${currentPage} من ${totalPages} (عرض ${startIndex + 1}-${endIndex} من ${fileData.length})`;
+                
+                elements.prevPageBtn.disabled = currentPage === 1;
+                elements.nextPageBtn.disabled = currentPage === totalPages;
+                
+                elements.dataTable.classList.add('active');
+            }
+            
+            function goToPrevPage() {
+                if (currentPage > 1) {
+                    displayDataTable(currentPage - 1);
+                }
+            }
+            
+            function goToNextPage() {
+                if (currentPage < totalPages) {
+                    displayDataTable(currentPage + 1);
+                }
+            }
+            
+            function toggleTableView() {
+                const tableContainer = document.querySelector('.table-container');
+                if (tableContainer.style.maxHeight && tableContainer.style.maxHeight !== 'none') {
+                    tableContainer.style.maxHeight = 'none';
+                    elements.toggleTableViewBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                } else {
+                    tableContainer.style.maxHeight = '500px';
+                    elements.toggleTableViewBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                }
+            }
+            
+            // ========== CHART FUNCTIONS ==========
+            function createCharts() {
+                if (fileData.length === 0) {
+                    elements.chartsContainer.style.display = 'none';
+                    return;
+                }
+                
+                elements.chartsContainer.style.display = 'grid';
+                
+                createStateChart();
+                createStatsChart();
+            }
+            
+            function createStateChart() {
+                const stateColumn = findStateColumn();
+                if (!stateColumn) return;
+                
+                const stateCounts = {};
+                fileData.forEach(client => {
+                    const state = client[stateColumn] || 'غير محدد';
+                    stateCounts[state] = (stateCounts[state] || 0) + 1;
+                });
+                
+                const stateLabels = Object.keys(stateCounts);
+                const stateData = Object.values(stateCounts);
+                
+                const backgroundColors = [
+                    'rgba(67, 97, 238, 0.7)',
+                    'rgba(114, 9, 183, 0.7)',
+                    'rgba(248, 37, 133, 0.7)',
+                    'rgba(76, 201, 240, 0.7)',
+                    'rgba(248, 150, 30, 0.7)',
+                    'rgba(249, 65, 68, 0.7)'
+                ];
+                
+                if (stateChart) stateChart.destroy();
+                
+                const ctx = document.getElementById('stateChart').getContext('2d');
+                stateChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: stateLabels,
+                        datasets: [{
+                            data: stateData,
+                            backgroundColor: backgroundColors.slice(0, stateLabels.length),
+                            borderWidth: 2,
+                            borderColor: 'white'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                rtl: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function createStatsChart() {
+                const statsData = {
+                    'بيانات كاملة': 0,
+                    'بيانات ناقصة': 0,
+                    'أرقام هاتف': 0,
+                    'عنواين بريد': 0
+                };
+                
+                const phoneColumn = findPhoneColumn();
+                const emailColumn = findEmailColumn();
+                const nameColumn = findNameColumn();
+                
+                fileData.forEach(client => {
+                    if (nameColumn && client[nameColumn] && phoneColumn && client[phoneColumn]) {
+                        statsData['بيانات كاملة']++;
+                    } else {
+                        statsData['بيانات ناقصة']++;
+                    }
+                    
+                    if (phoneColumn && client[phoneColumn]) {
+                        statsData['أرقام هاتف']++;
+                    }
+                    
+                    if (emailColumn && client[emailColumn]) {
+                        statsData['عنواين بريد']++;
+                    }
+                });
+                
+                const statsLabels = Object.keys(statsData);
+                const statsValues = Object.values(statsData);
+                
+                if (statsChart) statsChart.destroy();
+                
+                const ctx = document.getElementById('statsChart').getContext('2d');
+                statsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: statsLabels,
+                        datasets: [{
+                            label: 'عدد السجلات',
+                            data: statsValues,
+                            backgroundColor: 'rgba(67, 97, 238, 0.7)',
+                            borderColor: 'rgba(67, 97, 238, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: Math.ceil(Math.max(...statsValues) / 10)
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function hideCharts() {
+                elements.chartsContainer.style.display = 'none';
+            }
+            
+            // ========== EXPORT FUNCTIONS ==========
+            function exportAllData() {
+                if (fileData.length === 0) {
+                    showNotification('لا توجد بيانات للتصدير.', 'warning');
+                    return;
+                }
+                
+                exportToExcel(fileData, 'جميع_بيانات_العملاء');
+            }
+            
+            function exportResults() {
+                if (currentSearchResults.length === 0) {
+                    showNotification('لا توجد نتائج للتصدير.', 'warning');
+                    return;
+                }
+                
+                exportToExcel(currentSearchResults, 'نتائج_البحث');
+            }
+            
+            function exportTableData() {
+                if (fileData.length === 0) {
+                    showNotification('لا توجد بيانات في الجدول للتصدير.', 'warning');
+                    return;
+                }
+                
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, fileData.length);
+                const tableData = fileData.slice(startIndex, endIndex);
+                
+                exportToExcel(tableData, `بيانات_الصفحة_${currentPage}`);
+            }
+            
+            function exportToExcel(data, filename) {
+                try {
+                    const ws = XLSX.utils.json_to_sheet(data);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "بيانات العملاء");
+                    XLSX.writeFile(wb, `${filename}.xlsx`);
+                    showNotification(`تم تصدير ${data.length} سجل بنجاح.`, 'success');
+                } catch (error) {
+                    console.error('خطأ في التصدير:', error);
+                    showNotification('حدث خطأ أثناء تصدير البيانات.', 'error');
+                }
+            }
+            
+            function printClientInfo() {
+                const printContent = document.getElementById('clientInfo').innerHTML;
+                const originalContent = document.body.innerHTML;
+                
+                document.body.innerHTML = `
+                    <div dir="rtl" style="padding: 20px; font-family: 'Segoe UI', 'Tajawal', sans-serif;">
+                        <h1 style="text-align: center; color: #333;">بيانات العميل</h1>
+                        <hr>
+                        ${printContent}
+                        <hr>
+                        <p style="text-align: center; color: #666; margin-top: 30px;">
+                            تم الطباعة من نظام إدارة بيانات العملاء - ${new Date().toLocaleString('ar-EG')}
+                        </p>
+                    </div>
+                `;
+                
+                window.print();
+                document.body.innerHTML = originalContent;
+                window.location.reload();
+            }
+            
+            function editClientInfo() {
+                showNotification('ميزة التعديل قيد التطوير.', 'info');
+            }
+            
+            // ========== DATA MANAGEMENT FUNCTIONS ==========
+            function saveDataToLocalStorage() {
+                try {
+                    localStorage.setItem('customerData', JSON.stringify(fileData));
+                    localStorage.setItem('customerColumns', JSON.stringify(columns));
+                    localStorage.setItem('customerDataDate', new Date().toISOString());
+                } catch (error) {
+                    console.error('خطأ في حفظ البيانات:', error);
+                    showNotification('تعذر حفظ البيانات محلياً بسبب حجم البيانات الكبير.', 'warning');
+                }
+            }
+            
+            function loadSavedData() {
+                try {
+                    const savedData = localStorage.getItem('customerData');
+                    const savedColumns = localStorage.getItem('customerColumns');
+                    const savedDate = localStorage.getItem('customerDataDate');
+                    
+                    if (savedData && savedColumns) {
+                        fileData = JSON.parse(savedData);
+                        columns = JSON.parse(savedColumns);
+                        
+                        if (fileData.length > 0) {
+                            displayFileInfo({ name: 'ملف محفوظ مسبقاً' });
+                            displayDataTable();
+                            updateDashboard();
+                            createCharts();
+                            populateFilters();
+                            showNotification(`تم تحميل ${fileData.length} سجل من الذاكرة المحلية.`, 'success');
+                        }
+                    }
+                } catch (error) {
+                    console.error('خطأ في تحميل البيانات المحفوظة:', error);
+                }
+            }
+            
+            function clearAllData() {
+                if (confirm('هل أنت متأكد من مسح جميع البيانات؟ هذا الإجراء لا يمكن التراجع عنه.')) {
+                    fileData = [];
+                    columns = [];
+                    
+                    localStorage.removeItem('customerData');
+                    localStorage.removeItem('customerColumns');
+                    localStorage.removeItem('customerDataDate');
+                    
+                    elements.fileInfo.classList.add('hidden');
+                    elements.clientInfo.classList.remove('active');
+                    elements.multipleResults.classList.add('hidden');
+                    elements.chartsContainer.style.display = 'none';
+                    
+                    elements.tableHead.innerHTML = '';
+                    elements.tableBody.innerHTML = '';
+                    elements.pageInfo.textContent = 'لا توجد بيانات لعرضها';
+                    
+                    updateDashboard();
+                    resetAdvancedFilters();
+                    
+                    document.getElementById('filterState').innerHTML = '<option value="">جميع الولايات</option>';
+                    document.getElementById('filterCity').innerHTML = '<option value="">جميع البلديات</option>';
+                    
+                    showNotification('تم مسح جميع البيانات بنجاح.', 'success');
+                }
+            }
+            
+            // ========== STATS FUNCTIONS ==========
+            function loadStats() {
+                try {
+                    const savedStats = localStorage.getItem('customerStats');
+                    if (savedStats) {
+                        stats = JSON.parse(savedStats);
+                    }
+                } catch (error) {
+                    console.error('خطأ في تحميل الإحصائيات:', error);
+                }
+            }
+            
+            function saveStats() {
+                try {
+                    localStorage.setItem('customerStats', JSON.stringify(stats));
+                } catch (error) {
+                    console.error('خطأ في حفظ الإحصائيات:', error);
+                }
+            }
+            
+            function updateStatsDisplay() {
+                elements.totalClients.textContent = fileData.length;
+                elements.totalColumns.textContent = columns.length;
+                elements.lastUpdate.textContent = stats.lastUpload || '-';
+                
+                elements.statClients.textContent = fileData.length;
+                elements.statUploads.textContent = stats.uploads;
+                elements.statSearches.textContent = stats.searches;
+            }
+            
+            function updateDashboard() {
+                updateStatsDisplay();
+            }
+            
+            // ========== NOTIFICATION SYSTEM ==========
+            function showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                
+                let icon = 'info-circle';
+                let bgColor = '#d1ecf1';
+                let textColor = '#0c5460';
+                let borderColor = '#17a2b8';
+                
+                switch(type) {
+                    case 'success':
+                        icon = 'check-circle';
+                        bgColor = '#d4edda';
+                        textColor = '#155724';
+                        borderColor = '#28a745';
+                        break;
+                    case 'error':
+                        icon = 'exclamation-circle';
+                        bgColor = '#f8d7da';
+                        textColor = '#721c24';
+                        borderColor = '#dc3545';
+                        break;
+                    case 'warning':
+                        icon = 'exclamation-triangle';
+                        bgColor = '#fff3cd';
+                        textColor = '#856404';
+                        borderColor = '#ffc107';
+                        break;
+                }
+                
+                notification.style.background = bgColor;
+                notification.style.color = textColor;
+                notification.style.borderRight = `5px solid ${borderColor}`;
+                
+                notification.innerHTML = `
+                    <i class="fas fa-${icon}"></i>
+                    <div>${message}</div>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 5000);
+            }
+            
+            // ========== PUBLIC API ==========
+            return {
+                init: init
+            };
+            
+        })();
         
-        // جعل الدوال متاحة عالمياً للاستخدام من قبل الأحداث في HTML
-        window.deleteImage = deleteImage;
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            CustomerDataSystem.init();
+        });
     </script>
 </body>
 </html>
